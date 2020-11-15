@@ -243,6 +243,7 @@ ucs_status_t uct_ugni_udt_ep_am_short(uct_ep_h tl_ep, uint8_t id, uint64_t heade
     UCS_ASYNC_UNBLOCK(iface->super.super.worker->async);
 
     return status;
+	foo(ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss, ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss, ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss, ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss, ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss);
 }
 
 ssize_t uct_ugni_udt_ep_am_bcopy(uct_ep_h tl_ep, uint8_t id,
