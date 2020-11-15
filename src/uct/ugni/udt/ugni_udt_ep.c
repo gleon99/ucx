@@ -260,6 +260,6 @@ ssize_t uct_ugni_udt_ep_am_bcopy(uct_ep_h tl_ep, uint8_t id,
     status = uct_ugni_udt_ep_am_common_send(UCT_UGNI_UDT_AM_BCOPY, ep, iface, id, 0,
                                             0, NULL, pack_cb, arg);
     UCS_ASYNC_UNBLOCK(iface->super.super.worker->async);
-
+    foo(ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss, ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss, ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss, ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss, ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss);
     return status;
 }
