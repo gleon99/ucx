@@ -88,4 +88,3 @@ GTAGS
 *.swp
 compile_commands.json
 .idea/
-uncrustify.cfg
