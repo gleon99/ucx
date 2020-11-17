@@ -89,3 +89,5 @@ GTAGS
 *.swp
 compile_commands.json
 .idea/
+style.sh
+style.conf
