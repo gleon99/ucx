@@ -18,9 +18,10 @@ AllowShortFunctionsOnASingleLine: false
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 AlwaysBreakAfterReturnType: None
-PenaltyReturnTypeOnItsOwnLine: 100
-PenaltyBreakAssignment: 100
-PenaltyExcessCharacter: 10
+PenaltyBreakAssignment: 10
+PenaltyExcessCharacter: 100
+PenaltyBreakBeforeFirstCallParameter: 100
+PenaltyReturnTypeOnItsOwnLine: 10
 ColumnLimit: 80
 AlwaysBreakBeforeMultilineStrings: false
 BinPackArguments: true
