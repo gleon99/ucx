@@ -850,105 +850,132 @@ typedef struct uct_ppn_bandwidth {
 
 /**
  * @ingroup UCT_RESOURCE
+ * @brief @ref uct_op_attrs_t parameters field mask
+ */
+enum uct_op_attrs_field {
+    UCT_OP_ATTRS_FIELD_MIN_RECV        = UCS_BIT(0),
+    UCT_OP_ATTRS_FIELD_MAX_SHORT       = UCS_BIT(1),
+    UCT_OP_ATTRS_FIELD_MAX_BCOPY       = UCS_BIT(2),
+    UCT_OP_ATTRS_FIELD_MIN_ZCOPY       = UCS_BIT(3),
+    UCT_OP_ATTRS_FIELD_MAX_ZCOPY       = UCS_BIT(4),
+    UCT_OP_ATTRS_FIELD_OPT_ZCOPY_ALIGN = UCS_BIT(5),
+    UCT_OP_ATTRS_FIELD_ALIGN_MTU       = UCS_BIT(6),
+    UCT_OP_ATTRS_FIELD_MAX_IOV         = UCS_BIT(7),
+    UCT_OP_ATTRS_FIELD_MAX_OUTSTANDING = UCS_BIT(8),
+    UCT_OP_ATTRS_FIELD_MAX_HDR         = UCS_BIT(9),
+    UCT_OP_ATTRS_FIELD_OVERHEAD        = UCS_BIT(10),
+    UCT_OP_ATTRS_FIELD_BANDWIDTH       = UCS_BIT(11)
+};
+
+
+/**
+ * @ingroup UCT_RESOURCE
+ * @brief Per-operation attributes
+ */
+typedef struct {
+    uint64_t            field_mask;     /**< Mask of valid fields in this structure,
+                                             using bits from @ref uct_op_attrs_field.
+                                             Fields not specified in this mask will be
+                                             ignored */
+    size_t              min_recv;       /**< Minimal allowed length of posted
+                                             receive buffer */
+    size_t              max_short;      /**< Maximal size for put_short */
+    size_t              max_bcopy;      /**< Maximal size for put_bcopy */
+    size_t              min_zcopy;      /**< Minimal size for put_zcopy (total
+                                             of @ref uct_iov_t::length of the
+                                             @a iov parameter) */
+    size_t              max_zcopy;       /**< Maximal size for put_zcopy (total
+                                              of @ref uct_iov_t::length of the
+                                              @a iov parameter) */
+    size_t              opt_zcopy_align; /**< Optimal alignment for zero-copy
+                                              buffer address */
+    size_t              align_mtu;       /**< MTU used for alignment */
+    size_t              max_iov;         /**< Maximal @a iovcnt parameter in
+                                              @ref ::uct_ep_put_zcopy
+                                              @anchor uct_iface_attr_cap_put_max_iov */
+    size_t              max_outstanding; /**< Maximal number of simultaneous
+                                              receive operations */
+    size_t              max_hdr;         /**< Maximal allowed header length in
+                                              @ref uct_ep_tag_rndv_zcopy and
+                                              @ref uct_ep_tag_rndv_request */
+    double              overhead;        /**< Message overhead, seconds */
+    uct_ppn_bandwidth_t bandwidth;       /**< Bandwidth model */
+} uct_op_attrs_t;  
+
+
+/**
+ * @ingroup UCT_RESOURCE
+ * @brief @ref uct_atomic_attrs_t parameters field mask
+ */
+enum uct_atomic_attrs_field {
+    UCT_ATOMIC_ATTRS_FIELD_OP_FLAGS  = UCS_BIT(0),
+    UCT_ATOMIC_ATTRS_FIELD_FOP_FLAGS = UCS_BIT(1),
+    UCT_ATOMIC_ATTRS_FIELD_OVERHEAD  = UCS_BIT(2),
+    UCT_ATOMIC_ATTRS_FIELD_BANDWIDTH = UCS_BIT(3)
+};
+
+
+/**
+ * @ingroup UCT_RESOURCE
+ * @brief Atomic operations attributes
+ */
+typedef struct {
+    uint64_t            field_mask; /**< Mask of valid fields in this structure,
+                                         using bits from @ref uct_atomic_attrs_field.
+                                         Fields not specified in this mask will be
+                                         ignored */
+    uint64_t            op_flags;   /**< Attributes for atomic-post operations */
+    uint64_t            fop_flags;  /**< Attributes for atomic-fetch operations */
+    double              overhead;   /**< Message overhead, seconds */
+    uct_ppn_bandwidth_t bandwidth;  /**< Bandwidth model */
+} uct_atomic_attrs_t;
+
+
+/**
+ * @ingroup UCT_RESOURCE
+ * @brief @ref uct_iface_cap_t parameters field mask
+ */
+enum uct_iface_cap_field {
+    UCT_IFACE_CAP_FIELD_PUT       = UCS_BIT(0),
+    UCT_IFACE_CAP_FIELD_GET       = UCS_BIT(1),
+    UCT_IFACE_CAP_FIELD_AM        = UCS_BIT(2),
+    UCT_IFACE_CAP_FIELD_TAG_RECV  = UCS_BIT(3),
+    UCT_IFACE_CAP_FIELD_TAG_EAGER = UCS_BIT(4),
+    UCT_IFACE_CAP_FIELD_TAG_RNDV  = UCS_BIT(5),
+    UCT_IFACE_CAP_FIELD_ATOMIC32  = UCS_BIT(6),
+    UCT_IFACE_CAP_FIELD_ATOMIC64  = UCS_BIT(7)
+};
+
+
+typedef struct {
+    uint64_t            field_mask;  /**< Mask of valid fields in this structure,
+                                          using bits from @ref uct_iface_cap_field.
+                                          Fields not specified in this mask will be
+                                          ignored */
+    uct_op_attrs_t      *put;        /**< Attributes for PUT operations */
+    uct_op_attrs_t      *get;        /**< Attributes for GET operations */
+    uct_op_attrs_t      *am;         /**< Attributes for AM operations */
+
+    uct_op_attrs_t      *tag_recv;
+    uct_op_attrs_t      *tag_eager;  /**< Attributes related to eager protocol */
+    uct_op_attrs_t      *tag_rndv;   /**< Attributes related to rendezvous protocol */
+
+    uct_atomic_attrs_t  *atomic32;   /**< Attributes for atomic operations */
+    uct_atomic_attrs_t  *atomic64;   /**< Attributes for atomic operations */
+
+    uint64_t            flags;       /**< Flags from @ref UCT_RESOURCE_IFACE_CAP */
+    uint64_t            event_flags; /**< Flags from @ref UCT_RESOURCE_IFACE_EVENT_CAP */
+} uct_iface_cap_t;
+
+
+/**
+ * @ingroup UCT_RESOURCE
  * @brief Interface attributes: capabilities and limitations.
  */
 struct uct_iface_attr {
-    struct {
-        struct {
-            size_t           max_short;  /**< Maximal size for put_short */
-            size_t           max_bcopy;  /**< Maximal size for put_bcopy */
-            size_t           min_zcopy;  /**< Minimal size for put_zcopy (total
-                                              of @ref uct_iov_t::length of the
-                                              @a iov parameter) */
-            size_t           max_zcopy;  /**< Maximal size for put_zcopy (total
-                                              of @ref uct_iov_t::length of the
-                                              @a iov parameter) */
-            size_t           opt_zcopy_align; /**< Optimal alignment for zero-copy
-                                              buffer address */
-            size_t           align_mtu;       /**< MTU used for alignment */
-            size_t           max_iov;    /**< Maximal @a iovcnt parameter in
-                                              @ref ::uct_ep_put_zcopy
-                                              @anchor uct_iface_attr_cap_put_max_iov */
-        } put;                           /**< Attributes for PUT operations */
-
-        struct {
-            size_t           max_short;  /**< Maximal size for get_short */
-            size_t           max_bcopy;  /**< Maximal size for get_bcopy */
-            size_t           min_zcopy;  /**< Minimal size for get_zcopy (total
-                                              of @ref uct_iov_t::length of the
-                                              @a iov parameter) */
-            size_t           max_zcopy;  /**< Maximal size for get_zcopy (total
-                                              of @ref uct_iov_t::length of the
-                                              @a iov parameter) */
-            size_t           opt_zcopy_align; /**< Optimal alignment for zero-copy
-                                              buffer address */
-            size_t           align_mtu;       /**< MTU used for alignment */
-            size_t           max_iov;    /**< Maximal @a iovcnt parameter in
-                                              @ref uct_ep_get_zcopy
-                                              @anchor uct_iface_attr_cap_get_max_iov */
-        } get;                           /**< Attributes for GET operations */
-
-        struct {
-            size_t           max_short;  /**< Total maximum size (incl. the header)
-                                              @anchor uct_iface_attr_cap_am_max_short */
-            size_t           max_bcopy;  /**< Total maximum size (incl. the header) */
-            size_t           min_zcopy;  /**< Minimal size for am_zcopy (incl. the
-                                              header and total of @ref uct_iov_t::length
-                                              of the @a iov parameter) */
-            size_t           max_zcopy;  /**< Total max. size (incl. the header
-                                              and total of @ref uct_iov_t::length
-                                              of the @a iov parameter) */
-            size_t           opt_zcopy_align; /**< Optimal alignment for zero-copy
-                                              buffer address */
-            size_t           align_mtu;       /**< MTU used for alignment */
-            size_t           max_hdr;    /**< Max. header size for zcopy */
-            size_t           max_iov;    /**< Maximal @a iovcnt parameter in
-                                              @ref ::uct_ep_am_zcopy
-                                              @anchor uct_iface_attr_cap_am_max_iov */
-        } am;                            /**< Attributes for AM operations */
-
-        struct {
-            struct {
-                size_t       min_recv;   /**< Minimal allowed length of posted receive buffer */
-                size_t       max_zcopy;  /**< Maximal allowed data length in
-                                              @ref uct_iface_tag_recv_zcopy */
-                size_t       max_iov;    /**< Maximal @a iovcnt parameter in
-                                              @ref uct_iface_tag_recv_zcopy
-                                              @anchor uct_iface_attr_cap_tag_recv_iov */
-                size_t       max_outstanding; /**< Maximal number of simultaneous
-                                                   receive operations */
-            } recv;
-
-            struct {
-                  size_t     max_short;  /**< Maximal allowed data length in
-                                              @ref uct_ep_tag_eager_short */
-                  size_t     max_bcopy;  /**< Maximal allowed data length in
-                                              @ref uct_ep_tag_eager_bcopy */
-                  size_t     max_zcopy;  /**< Maximal allowed data length in
-                                              @ref uct_ep_tag_eager_zcopy */
-                  size_t     max_iov;    /**< Maximal @a iovcnt parameter in
-                                              @ref uct_ep_tag_eager_zcopy */
-            } eager;                     /**< Attributes related to eager protocol */
-
-            struct {
-                  size_t     max_zcopy;  /**< Maximal allowed data length in
-                                              @ref uct_ep_tag_rndv_zcopy */
-                  size_t     max_hdr;    /**< Maximal allowed header length in
-                                              @ref uct_ep_tag_rndv_zcopy and
-                                              @ref uct_ep_tag_rndv_request */
-                  size_t     max_iov;    /**< Maximal @a iovcnt parameter in
-                                              @ref uct_ep_tag_rndv_zcopy */
-            } rndv;                      /**< Attributes related to rendezvous protocol */
-        } tag;                           /**< Attributes for TAG operations */
-
-        struct {
-            uint64_t         op_flags;   /**< Attributes for atomic-post operations */
-            uint64_t         fop_flags;  /**< Attributes for atomic-fetch operations */
-        } atomic32, atomic64;            /**< Attributes for atomic operations */
-
-        uint64_t             flags;      /**< Flags from @ref UCT_RESOURCE_IFACE_CAP */
-        uint64_t             event_flags;/**< Flags from @ref UCT_RESOURCE_IFACE_EVENT_CAP */
-    } cap;                               /**< Interface capabilities */
+    uint64_t valid_memory_types;
+    /**< Interface capabilities by memory type. Types are from ucs_memory_type_t */
+    uct_iface_cap_t *cap_by_memory_type[UCS_MEMORY_TYPE_LAST];
 
     size_t                   device_addr_len;/**< Size of device address */
     size_t                   iface_addr_len; /**< Size of interface address */
@@ -979,6 +1006,44 @@ struct uct_iface_attr {
                                                 compared to using only a single
                                                 endpoint. */
 };
+
+
+/* New API usage example */
+void uct_query_example()
+{
+    uct_iface_t iface;
+    uct_iface_attr_t attr;
+
+    attr.valid_memory_types = UCS_BIT(UCS_MEMORY_TYPE_HOST);
+
+    /* Dynamic allocation - requires freeing! */
+    attr.cap_by_memory_type[UCS_MEMORY_TYPE_HOST] = malloc(sizeof(uct_iface_cap_t));
+
+    attr.cap_by_memory_type[UCS_MEMORY_TYPE_HOST]->field_mask = UCT_IFACE_CAP_FIELD_PUT | 
+                                                                UCT_IFACE_CAP_FIELD_GET |
+                                                                UCT_IFACE_CAP_FIELD_AM;
+    attr.cap_by_memory_type[UCS_MEMORY_TYPE_HOST]->put = malloc(sizeof(uct_op_attrs_t));
+    attr.cap_by_memory_type[UCS_MEMORY_TYPE_HOST]->get = malloc(sizeof(uct_op_attrs_t));
+    attr.cap_by_memory_type[UCS_MEMORY_TYPE_HOST]->am = malloc(sizeof(uct_op_attrs_t));
+
+    attr.cap_by_memory_type[UCS_MEMORY_TYPE_HOST]->put->field_mask =
+            UCT_OP_ATTRS_FIELD_MAX_SHORT | UCT_OP_ATTRS_FIELD_MAX_BCOPY |
+            UCT_OP_ATTRS_FIELD_MIN_ZCOPY | UCT_OP_ATTRS_FIELD_MAX_ZCOPY |
+            UCT_OP_ATTRS_FIELD_OPT_ZCOPY_ALIGN | UCT_OP_ATTRS_FIELD_ALIGN_MTU |
+            UCT_OP_ATTRS_FIELD_MAX_IOV;
+    attr.cap_by_memory_type[UCS_MEMORY_TYPE_HOST]->get->field_mask =
+            UCT_OP_ATTRS_FIELD_MAX_SHORT | UCT_OP_ATTRS_FIELD_MAX_BCOPY |
+            UCT_OP_ATTRS_FIELD_MIN_ZCOPY | UCT_OP_ATTRS_FIELD_MAX_ZCOPY |
+            UCT_OP_ATTRS_FIELD_OPT_ZCOPY_ALIGN | UCT_OP_ATTRS_FIELD_ALIGN_MTU |
+            UCT_OP_ATTRS_FIELD_MAX_IOV;
+    attr.cap_by_memory_type[UCS_MEMORY_TYPE_HOST]->am->field_mask =
+            UCT_OP_ATTRS_FIELD_MAX_SHORT | UCT_OP_ATTRS_FIELD_MAX_BCOPY |
+            UCT_OP_ATTRS_FIELD_MIN_ZCOPY | UCT_OP_ATTRS_FIELD_MAX_ZCOPY |
+            UCT_OP_ATTRS_FIELD_OPT_ZCOPY_ALIGN | UCT_OP_ATTRS_FIELD_ALIGN_MTU |
+            UCT_OP_ATTRS_FIELD_MAX_HDR | UCT_OP_ATTRS_FIELD_MAX_IOV;
+
+    uct_iface_query(&iface, &attr);
+}
 
 
 /**
