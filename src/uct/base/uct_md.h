@@ -15,7 +15,11 @@
 
 #include <uct/api/uct.h>
 #include <ucs/config/parser.h>
+// <<<<<<< HEAD
 #include <ucs/memory/rcache.h>
+// =======
+#include <ucs/memory/rcache_int.h>
+// >>>>>>> 093c5aea6... UCT/IB/RCACHE: Clean invalidated regions during progress
 #include <string.h>
 
 

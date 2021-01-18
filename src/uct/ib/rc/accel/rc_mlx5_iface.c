@@ -164,17 +164,36 @@ uct_rc_mlx5_iface_poll_tx(uct_rc_mlx5_iface_common_t *iface)
 }
 
 static UCS_F_ALWAYS_INLINE unsigned
-uct_rc_mlx5_iface_progress(void *arg, int flags)
+// <<<<<<< HEAD
+// uct_rc_mlx5_iface_progress(void *arg, int flags)
+// =======
+uct_rc_mlx5_iface_progress_common(uct_rc_mlx5_iface_common_t *iface,
+                                  int flags)
+// >>>>>>> 093c5aea6... UCT/IB/RCACHE: Clean invalidated regions during progress
 {
-    uct_rc_mlx5_iface_common_t *iface = arg;
     unsigned count;
 
+// <<<<<<< HEAD
     count = uct_rc_mlx5_iface_common_poll_rx(iface, flags);
     if (!uct_rc_iface_poll_tx(&iface->super, count)) {
         return count;
     }
+    
+    count += uct_rc_mlx5_iface_poll_tx(iface);
 
-    return count + uct_rc_mlx5_iface_poll_tx(iface);
+    if (!count) {
+        uct_ib_md_progress(uct_ib_iface_md(&iface->super.super));
+    }
+
+    return count;
+}
+
+unsigned uct_rc_mlx5_iface_progress(void *arg, int flags)
+{
+    uct_rc_mlx5_iface_common_t *iface = arg;
+
+    return uct_rc_mlx5_iface_progress_common(iface, flags | UCT_RC_MLX5_POLL_FLAG_HAS_EP);
+// >>>>>>> 093c5aea6... UCT/IB/RCACHE: Clean invalidated regions during progress
 }
 
 static unsigned uct_rc_mlx5_iface_progress_cyclic(void *arg)
@@ -188,11 +207,23 @@ static unsigned uct_rc_mlx5_iface_progress_ll(void *arg)
                                            UCT_RC_MLX5_POLL_FLAG_LINKED_LIST);
 }
 
-static unsigned uct_rc_mlx5_iface_progress_tm(void *arg)
-{
-    return uct_rc_mlx5_iface_progress(arg, UCT_RC_MLX5_POLL_FLAG_HAS_EP |
-                                           UCT_RC_MLX5_POLL_FLAG_TM);
-}
+// static unsigned uct_rc_mlx5_iface_progress_tm(void *arg)
+// {
+    // return uct_rc_mlx5_iface_progress(arg, UCT_RC_MLX5_POLL_FLAG_HAS_EP |
+                                        //    UCT_RC_MLX5_POLL_FLAG_TM);
+// =======
+    // count = uct_rc_mlx5_iface_common_poll_rx(iface, poll_flag);
+    // if (count > 0) {
+    //     return count;
+    // }
+    // count = uct_rc_mlx5_iface_poll_tx(iface);
+    // if (count > 0) {
+    //     return count;
+    // }
+
+    // uct_ib_md_progress(uct_ib_iface_md(&iface->super.super));
+    // return 0;
+// }
 
 static ucs_status_t uct_rc_mlx5_iface_query(uct_iface_h tl_iface, uct_iface_attr_t *iface_attr)
 {
@@ -355,6 +386,17 @@ err:
     return status;
 }
 
+// <<<<<<< HEAD
+// =======
+static UCS_F_MAYBE_UNUSED unsigned uct_rc_mlx5_iface_progress_tm(void *arg)
+{
+    uct_rc_mlx5_iface_common_t *iface = arg;
+
+    return uct_rc_mlx5_iface_progress_common(iface, UCT_RC_MLX5_POLL_FLAG_HAS_EP |
+                                             UCT_RC_MLX5_POLL_FLAG_TM);
+}
+
+// >>>>>>> 093c5aea6... UCT/IB/RCACHE: Clean invalidated regions during progress
 #if IBV_HW_TM
 static ucs_status_t uct_rc_mlx5_iface_tag_recv_zcopy(uct_iface_h tl_iface,
                                                      uct_tag_t tag,

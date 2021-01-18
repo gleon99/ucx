@@ -237,22 +237,59 @@ uct_dc_mlx5_poll_tx(uct_dc_mlx5_iface_t *iface)
 }
 
 static UCS_F_ALWAYS_INLINE unsigned
-uct_dc_mlx5_iface_progress(void *arg, int flags)
+// <<<<<<< HEAD
+// uct_dc_mlx5_iface_progress(void *arg, int flags)
+// =======
+uct_dc_mlx5_iface_progress_common(uct_dc_mlx5_iface_t *iface, int flags)
+// >>>>>>> 093c5aea6... UCT/IB/RCACHE: Clean invalidated regions during progress
 {
-    uct_dc_mlx5_iface_t *iface = arg;
     unsigned count;
 
+// <<<<<<< HEAD
     count = uct_rc_mlx5_iface_common_poll_rx(&iface->super, flags);
     if (!uct_rc_iface_poll_tx(&iface->super.super, count)) {
         return count;
     }
 
-    return count + uct_dc_mlx5_poll_tx(iface);
+    count += uct_dc_mlx5_poll_tx(iface);
+
+    if (!count) {
+        uct_ib_md_progress(uct_ib_iface_md(&iface->super.super.super));
+    }
+
+    return count;
+// =======
+    // count = uct_rc_mlx5_iface_common_poll_rx(&iface->super, flags);
+    // if (count > 0) {
+    //     return count;
+    // }
+
+    // count = uct_dc_mlx5_poll_tx(iface);
+    // if (count > 0) {
+    //     return count;
+    // }
+
+    // uct_ib_md_progress(uct_ib_iface_md(&iface->super.super.super));
+    // return 0;
+}
+
+static unsigned uct_dc_mlx5_iface_progress(void *arg, int flags)
+{
+    uct_dc_mlx5_iface_t *iface = arg;
+
+    return uct_dc_mlx5_iface_progress_common(iface, flags);
+// >>>>>>> 093c5aea6... UCT/IB/RCACHE: Clean invalidated regions during progress
 }
 
 static unsigned uct_dc_mlx5_iface_progress_cyclic(void *arg)
 {
-    return uct_dc_mlx5_iface_progress(arg, 0);
+// <<<<<<< HEAD
+    // return uct_dc_mlx5_iface_progress(arg, 0);
+// =======
+    uct_dc_mlx5_iface_t *iface = arg;
+
+    return uct_dc_mlx5_iface_progress_common(iface, UCT_RC_MLX5_POLL_FLAG_TM);
+// >>>>>>> 093c5aea6... UCT/IB/RCACHE: Clean invalidated regions during progress
 }
 
 static unsigned uct_dc_mlx5_iface_progress_ll(void *arg)

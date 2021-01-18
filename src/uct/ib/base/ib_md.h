@@ -461,6 +461,7 @@ ucs_status_t uct_ib_dereg_mrs(struct ibv_mr **mrs, size_t mr_num);
 ucs_status_t
 uct_ib_md_handle_mr_list_multithreaded(uct_ib_md_t *md, void *address,
                                        size_t length, uint64_t access,
+// <<<<<<< HEAD
                                        size_t chunk, struct ibv_mr **mrs,
                                        int silent);
 
@@ -471,4 +472,16 @@ ucs_status_t uct_ib_reg_key_impl(uct_ib_md_t *md, void *address,
                                  size_t length, uint64_t access_flags,
                                  uct_ib_mem_t *memh, uct_ib_mr_t *mrs,
                                  uct_ib_mr_type_t mr_type, int silent);
+// =======
+                                    //    size_t chunk, struct ibv_mr **mrs);
+
+static UCS_F_ALWAYS_INLINE void
+uct_ib_md_progress(uct_ib_md_t *md)
+{
+    if (ucs_likely(md->rcache != NULL)){
+        ucs_rcache_check_inv_queue_fast(md->rcache);
+    }
+}
+
+// >>>>>>> 093c5aea6... UCT/IB/RCACHE: Clean invalidated regions during progress
 #endif

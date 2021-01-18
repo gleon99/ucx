@@ -449,7 +449,11 @@ static void ucs_rcache_invalidate_range(ucs_rcache_t *rcache, ucs_pgt_addr_t sta
 }
 
 /* Lock must be held in write mode */
-static void ucs_rcache_check_inv_queue(ucs_rcache_t *rcache, unsigned flags)
+// <<<<<<< HEAD
+// static void ucs_rcache_check_inv_queue(ucs_rcache_t *rcache, unsigned flags)
+// =======
+static void ucs_rcache_check_inv_queue_internal(ucs_rcache_t *rcache, unsigned flags)
+// >>>>>>> 093c5aea6... UCT/IB/RCACHE: Clean invalidated regions during progress
 {
     ucs_rcache_inv_entry_t *entry;
 
@@ -532,7 +536,7 @@ static void ucs_rcache_unmapped_callback(ucm_event_type_t event_type,
         ucs_rcache_invalidate_range(rcache, start, end,
                                     UCS_RCACHE_REGION_PUT_FLAG_ADD_TO_GC);
         UCS_STATS_UPDATE_COUNTER(rcache->stats, UCS_RCACHE_UNMAPS, 1);
-        ucs_rcache_check_inv_queue(rcache, UCS_RCACHE_REGION_PUT_FLAG_ADD_TO_GC);
+        ucs_rcache_check_inv_queue_internal(rcache, UCS_RCACHE_REGION_PUT_FLAG_ADD_TO_GC);
         pthread_rwlock_unlock(&rcache->pgt_lock);
         return;
     }
@@ -645,8 +649,12 @@ ucs_rcache_check_overlap(ucs_rcache_t *rcache, ucs_pgt_addr_t *start,
     ucs_trace_func("rcache=%s, *start=0x%lx, *end=0x%lx", rcache->name, *start,
                    *end);
 
-    ucs_rcache_check_inv_queue(rcache, 0);
+// <<<<<<< HEAD
+    // ucs_rcache_check_inv_queue(rcache, 0);
+// =======
+    ucs_rcache_check_inv_queue_internal(rcache, 0);
     ucs_rcache_check_gc_list(rcache);
+// >>>>>>> 093c5aea6... UCT/IB/RCACHE: Clean invalidated regions during progress
 
     ucs_rcache_find_regions(rcache, *start, *end - 1, &region_list);
 
@@ -936,6 +944,7 @@ void ucs_rcache_region_put(ucs_rcache_t *rcache, ucs_rcache_region_t *region)
     UCS_STATS_UPDATE_COUNTER(rcache->stats, UCS_RCACHE_PUTS, 1);
 }
 
+// <<<<<<< HEAD-
 static void ucs_rcache_before_fork(void)
 {
     ucs_rcache_t *rcache;
@@ -1041,6 +1050,15 @@ static void ucs_rcache_vfs_init(ucs_rcache_t *rcache)
                             "inv_q/length");
     ucs_vfs_obj_add_ro_file(rcache, ucs_rcache_vfs_show_gc_list_length, NULL,
                             "gc_list/length");
+}
+
+// =======
+void ucs_rcache_check_inv_queue_slow(ucs_rcache_t *rcache)
+{
+    ucs_spin_lock(&rcache->lock);
+    ucs_rcache_check_inv_queue_internal(rcache, 0);
+    ucs_spin_unlock(&rcache->lock);
+// >>>>>>> 093c5aea6... UCT/IB/RCACHE: Clean invalidated regions during progress
 }
 
 static UCS_CLASS_INIT_FUNC(ucs_rcache_t, const ucs_rcache_params_t *params,
@@ -1154,8 +1172,12 @@ static UCS_CLASS_CLEANUP_FUNC(ucs_rcache_t)
     ucs_rcache_global_list_remove(self);
     ucm_unset_event_handler(self->params.ucm_events, ucs_rcache_unmapped_callback,
                             self);
-    ucs_rcache_check_inv_queue(self, 0);
+// <<<<<<< HEAD
+    // ucs_rcache_check_inv_queue(self, 0);
+// =======
+    ucs_rcache_check_inv_queue_internal(self, 0);
     ucs_rcache_check_gc_list(self);
+// >>>>>>> 093c5aea6... UCT/IB/RCACHE: Clean invalidated regions during progress
     ucs_rcache_purge(self);
 
     if (self->lru.count > 0) {

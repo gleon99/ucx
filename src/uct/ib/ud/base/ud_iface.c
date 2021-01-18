@@ -218,19 +218,31 @@ err_destroy_qp:
 
 static inline void uct_ud_iface_async_progress(uct_ud_iface_t *iface)
 {
-    uct_ud_iface_ops_t *ops =
-        ucs_derived_of(iface->super.ops, uct_ud_iface_ops_t);
     unsigned ev_count;
+    uct_ud_iface_ops_t *ops;
 
-    if (ucs_unlikely(iface->async.disable)) {
-        return;
-    }
-
+    ops = ucs_derived_of(iface->super.ops, uct_ud_iface_ops_t);
     ev_count = ops->async_progress(iface);
     if (ev_count > 0) {
         uct_ud_iface_raise_pending_async_ev(iface);
     }
 }
+
+// static inline void uct_ud_iface_async_progress(uct_ud_iface_t *iface)
+// {
+//     uct_ud_iface_ops_t *ops =
+//         ucs_derived_of(iface->super.ops, uct_ud_iface_ops_t);
+//     unsigned ev_count;
+
+//     if (ucs_unlikely(iface->async.disable)) {
+//         return;
+//     }
+
+//     ev_count = ops->async_progress(iface);
+//     if (ev_count > 0) {
+//         uct_ud_iface_raise_pending_async_ev(iface);
+//     }
+// }
 
 static void uct_ud_iface_async_handler(int fd, ucs_event_set_types_t events,
                                        void *arg)
@@ -886,6 +898,26 @@ static void uct_ud_iface_free_pending_rx(uct_ud_iface_t *iface)
     }
 }
 
+// <<<<<<< HEAD
+// =======
+
+
+// static void uct_ud_iface_timer(int timer_id, void *arg)
+// {
+//     uct_ud_iface_t *iface = arg;
+//     ucs_time_t now;
+
+//     uct_ud_enter(iface);
+//     now = uct_ud_iface_get_async_time(iface);
+//     ucs_trace_async("iface(%p) slow_timer_sweep: now %lu", iface, now);
+//     ucs_twheel_sweep(&iface->async.slow_timer, now);
+//     uct_ud_iface_async_progress(iface);
+//     uct_ud_leave(iface);
+
+//     uct_ib_md_progress(uct_ib_iface_md(&iface->super));
+// }
+
+// >>>>>>> 093c5aea6... UCT/IB/RCACHE: Clean invalidated regions during progress
 void uct_ud_iface_release_desc(uct_recv_desc_t *self, void *desc)
 {
     uct_ud_iface_t *iface = ucs_container_of(self,
