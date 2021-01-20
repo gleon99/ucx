@@ -948,20 +948,25 @@ enum uct_iface_cap_field {
 
 
 typedef struct {
+    uct_op_attrs_t recv;
+    uct_op_attrs_t eager;
+    uct_op_attrs_t rndv;
+} tag_ops_cap_t;
+
+
+typedef struct {
     uint64_t            field_mask;  /**< Mask of valid fields in this structure,
                                           using bits from @ref uct_iface_cap_field.
                                           Fields not specified in this mask will be
                                           ignored */
-    uct_op_attrs_t      *put;        /**< Attributes for PUT operations */
-    uct_op_attrs_t      *get;        /**< Attributes for GET operations */
-    uct_op_attrs_t      *am;         /**< Attributes for AM operations */
+    uct_op_attrs_t      put;        /**< Attributes for PUT operations */
+    uct_op_attrs_t      get;        /**< Attributes for GET operations */
+    uct_op_attrs_t      am;         /**< Attributes for AM operations */
 
-    uct_op_attrs_t      *tag_recv;
-    uct_op_attrs_t      *tag_eager;  /**< Attributes related to eager protocol */
-    uct_op_attrs_t      *tag_rndv;   /**< Attributes related to rendezvous protocol */
+    tag_ops_cap_t tag;
 
-    uct_atomic_attrs_t  *atomic32;   /**< Attributes for atomic operations */
-    uct_atomic_attrs_t  *atomic64;   /**< Attributes for atomic operations */
+    uct_atomic_attrs_t  atomic32;   /**< Attributes for atomic operations */
+    uct_atomic_attrs_t  atomic64;   /**< Attributes for atomic operations */
 
     uint64_t            flags;       /**< Flags from @ref UCT_RESOURCE_IFACE_CAP */
     uint64_t            event_flags; /**< Flags from @ref UCT_RESOURCE_IFACE_EVENT_CAP */
@@ -973,9 +978,8 @@ typedef struct {
  * @brief Interface attributes: capabilities and limitations.
  */
 struct uct_iface_attr {
-    uint64_t valid_memory_types;
     /**< Interface capabilities by memory type. Types are from ucs_memory_type_t */
-    uct_iface_cap_t *cap_by_memory_type[UCS_MEMORY_TYPE_LAST];
+    uct_iface_cap_t cap;
 
     size_t                   device_addr_len;/**< Size of device address */
     size_t                   iface_addr_len; /**< Size of interface address */
@@ -1006,44 +1010,6 @@ struct uct_iface_attr {
                                                 compared to using only a single
                                                 endpoint. */
 };
-
-
-/* New API usage example */
-void uct_query_example()
-{
-    uct_iface_t iface;
-    uct_iface_attr_t attr;
-
-    attr.valid_memory_types = UCS_BIT(UCS_MEMORY_TYPE_HOST);
-
-    /* Dynamic allocation - requires freeing! */
-    attr.cap_by_memory_type[UCS_MEMORY_TYPE_HOST] = malloc(sizeof(uct_iface_cap_t));
-
-    attr.cap_by_memory_type[UCS_MEMORY_TYPE_HOST]->field_mask = UCT_IFACE_CAP_FIELD_PUT | 
-                                                                UCT_IFACE_CAP_FIELD_GET |
-                                                                UCT_IFACE_CAP_FIELD_AM;
-    attr.cap_by_memory_type[UCS_MEMORY_TYPE_HOST]->put = malloc(sizeof(uct_op_attrs_t));
-    attr.cap_by_memory_type[UCS_MEMORY_TYPE_HOST]->get = malloc(sizeof(uct_op_attrs_t));
-    attr.cap_by_memory_type[UCS_MEMORY_TYPE_HOST]->am = malloc(sizeof(uct_op_attrs_t));
-
-    attr.cap_by_memory_type[UCS_MEMORY_TYPE_HOST]->put->field_mask =
-            UCT_OP_ATTRS_FIELD_MAX_SHORT | UCT_OP_ATTRS_FIELD_MAX_BCOPY |
-            UCT_OP_ATTRS_FIELD_MIN_ZCOPY | UCT_OP_ATTRS_FIELD_MAX_ZCOPY |
-            UCT_OP_ATTRS_FIELD_OPT_ZCOPY_ALIGN | UCT_OP_ATTRS_FIELD_ALIGN_MTU |
-            UCT_OP_ATTRS_FIELD_MAX_IOV;
-    attr.cap_by_memory_type[UCS_MEMORY_TYPE_HOST]->get->field_mask =
-            UCT_OP_ATTRS_FIELD_MAX_SHORT | UCT_OP_ATTRS_FIELD_MAX_BCOPY |
-            UCT_OP_ATTRS_FIELD_MIN_ZCOPY | UCT_OP_ATTRS_FIELD_MAX_ZCOPY |
-            UCT_OP_ATTRS_FIELD_OPT_ZCOPY_ALIGN | UCT_OP_ATTRS_FIELD_ALIGN_MTU |
-            UCT_OP_ATTRS_FIELD_MAX_IOV;
-    attr.cap_by_memory_type[UCS_MEMORY_TYPE_HOST]->am->field_mask =
-            UCT_OP_ATTRS_FIELD_MAX_SHORT | UCT_OP_ATTRS_FIELD_MAX_BCOPY |
-            UCT_OP_ATTRS_FIELD_MIN_ZCOPY | UCT_OP_ATTRS_FIELD_MAX_ZCOPY |
-            UCT_OP_ATTRS_FIELD_OPT_ZCOPY_ALIGN | UCT_OP_ATTRS_FIELD_ALIGN_MTU |
-            UCT_OP_ATTRS_FIELD_MAX_HDR | UCT_OP_ATTRS_FIELD_MAX_IOV;
-
-    uct_iface_query(&iface, &attr);
-}
 
 
 /**
