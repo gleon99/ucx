@@ -178,6 +178,14 @@ ucs_status_t uct_iface_query(uct_iface_h iface, uct_iface_attr_t *iface_attr)
     return iface->ops.iface_query(iface, iface_attr);
 }
 
+ucs_status_t uct_iface_query_performance(uct_iface_h iface, uct_performance_attrs_t *performance,
+                                         ucs_memory_type_t first, ucs_memory_type_t second,
+                                         uct_iface_cap_field_t op, uct_performance_attrs_field_t field_mask)
+{
+    return UCS_OK;
+    // return iface->ops.iface_query
+}
+
 ucs_status_t uct_iface_get_device_address(uct_iface_h iface, uct_device_addr_t *addr)
 {
     return iface->ops.iface_get_device_address(iface, addr);

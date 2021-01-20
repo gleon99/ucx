@@ -931,11 +931,24 @@ typedef struct {
 } uct_atomic_attrs_t;
 
 
+typedef enum uct_performance_attrs_field {
+    UCT_PERFORMANCE_ATTRS_OVERHEAD = UCS_BIT(0),
+    UCT_PERFORMANCE_ATTRS_BANDWIDTH = UCS_BIT(1)
+} uct_performance_attrs_field_t;
+
+
+typedef struct {
+    uint64_t field_mask;
+    double              overhead;   /**< Message overhead, seconds */
+    uct_ppn_bandwidth_t bandwidth;  /**< Bandwidth model */
+} uct_performance_attrs_t;
+
+
 /**
  * @ingroup UCT_RESOURCE
  * @brief @ref uct_iface_cap_t parameters field mask
  */
-enum uct_iface_cap_field {
+typedef enum uct_iface_cap_field {
     UCT_IFACE_CAP_FIELD_PUT       = UCS_BIT(0),
     UCT_IFACE_CAP_FIELD_GET       = UCS_BIT(1),
     UCT_IFACE_CAP_FIELD_AM        = UCS_BIT(2),
@@ -944,7 +957,7 @@ enum uct_iface_cap_field {
     UCT_IFACE_CAP_FIELD_TAG_RNDV  = UCS_BIT(5),
     UCT_IFACE_CAP_FIELD_ATOMIC32  = UCS_BIT(6),
     UCT_IFACE_CAP_FIELD_ATOMIC64  = UCS_BIT(7)
-};
+} uct_iface_cap_field_t;
 
 
 typedef struct {
@@ -1810,6 +1823,17 @@ void uct_iface_close(uct_iface_h iface);
  * @param [out] iface_attr Filled with interface attributes.
  */
 ucs_status_t uct_iface_query(uct_iface_h iface, uct_iface_attr_t *iface_attr);
+
+
+/**
+ * @ingroup UCT_RESOURCE
+ * @brief Get interface attributes by memory type
+ *
+ * TODO: Complete...
+ */
+ucs_status_t uct_iface_query_performance(uct_iface_h iface, uct_performance_attrs_t *performance,
+                                         ucs_memory_type_t first, ucs_memory_type_t second,
+                                         uct_iface_cap_field_t op, uct_performance_attrs_field_t field_mask);
 
 
 /**
