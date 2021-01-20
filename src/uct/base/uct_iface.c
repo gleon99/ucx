@@ -182,8 +182,24 @@ ucs_status_t uct_iface_query_performance(uct_iface_h iface, uct_performance_attr
                                          ucs_memory_type_t first, ucs_memory_type_t second,
                                          uct_iface_cap_field_t op, uct_performance_attrs_field_t field_mask)
 {
+    uct_iface_attr_t iface_attr;
+    ucs_status_t status;
+    
+    status = uct_iface_query(iface, &iface_attr);
+
+    if (status != UCS_OK) {
+        return status;
+    }
+
+    if (field_mask & UCT_PERFORMANCE_ATTRS_BANDWIDTH) {
+        performance->bandwidth = iface_attr.bandwidth;
+    }
+
+    if (field_mask & UCT_PERFORMANCE_ATTRS_OVERHEAD) {
+        performance->overhead = iface_attr.overhead;
+    }
+
     return UCS_OK;
-    // return iface->ops.iface_query
 }
 
 ucs_status_t uct_iface_get_device_address(uct_iface_h iface, uct_device_addr_t *addr)
