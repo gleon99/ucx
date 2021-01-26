@@ -80,11 +80,10 @@ typedef struct {
 #define VERBOSE_LOG UcxLog(LOG_PREFIX, _test_opts.verbose)
 
 
-template<class T, bool use_offcache = false>
-class MemoryPool {
+template<class BufferType, bool use_offcache = false> class BaseMemoryPool {
 public:
-    MemoryPool(size_t buffer_size, const std::string &name,
-               size_t offcache = 0) :
+    BaseMemoryPool(size_t buffer_size, const std::string &name,
+                   size_t offcache = 0) :
         _buffer_size(buffer_size), _num_allocated(0), _name(name)
     {
         for (size_t i = 0; i < offcache; ++i) {
@@ -92,7 +91,8 @@ public:
         }
     }
 
-    ~MemoryPool() {
+    ~BaseMemoryPool()
+    {
         while (!_offcache_queue.empty()) {
             _free_stack.push_back(_offcache_queue.front());
             _offcache_queue.pop();
@@ -108,8 +108,9 @@ public:
         }
     }
 
-    inline T* get() {
-        T *item = get_free();
+    inline BufferType *get()
+    {
+        BufferType *item = get_free();
 
         if (use_offcache && !_offcache_queue.empty()) {
             _offcache_queue.push(item);
@@ -120,7 +121,8 @@ public:
         return item;
     }
 
-    inline void put(T* item) {
+    inline void put(BufferType *item)
+    {
         _free_stack.push_back(item);
     }
 
@@ -128,14 +130,23 @@ public:
         return _num_allocated;
     }
 
-private:
-    T *construct()
+protected:
+    size_t get_buffer_size()
     {
-        return new T(_buffer_size, *this);
+        return _buffer_size;
     }
 
-    inline T* get_free() {
-        T* item;
+    virtual BufferType *construct()
+    {
+        /* This code is unreachable but required in order to compile */
+        abort();
+    };
+
+
+private:
+    inline BufferType *get_free()
+    {
+        BufferType *item;
 
         if (_free_stack.empty()) {
             item = construct();
@@ -147,30 +158,38 @@ private:
         return item;
     }
 
-protected:
-    size_t _buffer_size;
-
 private:
-    std::vector<T*> _free_stack;
-    std::queue<T*>  _offcache_queue;
-    uint32_t        _num_allocated;
-    std::string     _name;
+    size_t                   _buffer_size;
+    std::vector<BufferType*> _free_stack;
+    std::queue<BufferType*>  _offcache_queue;
+    uint32_t                 _num_allocated;
+    std::string              _name;
 };
 
-template<class T, bool use_offcache = false>
-class CustomMemoryPool : public MemoryPool<T, use_offcache> {
+template<class BufferType, bool use_offcache = false>
+class MemoryPool : public BaseMemoryPool<BufferType, use_offcache> {
+    using BaseMemoryPool<BufferType, use_offcache>::BaseMemoryPool;
+
 public:
-    CustomMemoryPool(size_t buffer_size, const std::string &name,
+    virtual BufferType *construct() override
+    {
+        return new BufferType(this->get_buffer_size(), *this);
+    }
+};
+
+template<typename BufferType>
+class BufferMemoryPool : public BaseMemoryPool<BufferType, true> {
+public:
+    BufferMemoryPool(size_t buffer_size, const std::string &name,
                      ucs_memory_type_t memory_type, size_t offcache = 0) :
-        MemoryPool<T, use_offcache>(buffer_size, name, offcache),
+        BaseMemoryPool<BufferType, true>(buffer_size, name, offcache),
         _memory_type(memory_type)
     {
     }
 
-private:
-    T *construct()
+    virtual BufferType *construct() override
     {
-        return new T(this->_buffer_size, *this, _memory_type);
+        return new BufferType(this->get_buffer_size(), *this, _memory_type);
     }
 
 private:
@@ -328,62 +347,18 @@ protected:
         XFER_TYPE_RECV
     } xfer_type_t;
 
-    class Buffer {
+    class BufferImpl {
     public:
-        Buffer(size_t size, MemoryPool<Buffer, true> &pool,
-               ucs_memory_type_t memory_type = UCS_MEMORY_TYPE_HOST) :
-            _capacity(size), _size(0), _pool(pool), _memory_type(memory_type)
+        BufferImpl(size_t size) : _capacity(size), _size(0)
         {
-#ifdef HAVE_CUDA
-            cudaError_t cerr;
-#endif
-            switch (memory_type) {
-#ifdef HAVE_CUDA
-            case UCS_MEMORY_TYPE_CUDA:
-                cerr = cudaMalloc(&_buffer, size);
-                if (cerr != cudaSuccess) {
-                    _buffer = NULL;
-                }
-                break;
-            case UCS_MEMORY_TYPE_CUDA_MANAGED:
-                cerr = cudaMallocManaged(&_buffer, size, cudaMemAttachGlobal);
-                if (cerr != cudaSuccess) {
-                    _buffer = NULL;
-                }
-                break;
-#endif
-            case UCS_MEMORY_TYPE_HOST:
-                _buffer = memalign(ALIGNMENT, size);
-                break;
-            default:
-                LOG << "ERROR: Unsupported memory type requested: "
-                    << memory_type;
-                abort();
-            }
+        }
+
+        void setBuffer(void *buffer)
+        {
             if (_buffer == NULL) {
                 throw std::bad_alloc();
             }
-        }
-
-        ~Buffer() {
-            switch (_memory_type) {
-#ifdef HAVE_CUDA
-            case UCS_MEMORY_TYPE_CUDA:
-            case UCS_MEMORY_TYPE_CUDA_MANAGED:
-                cudaFree(_buffer);
-                break;
-#endif
-            case UCS_MEMORY_TYPE_HOST:
-                free(_buffer);
-                break;
-            default:
-                /* Unreachable - would fail in ctor */
-                abort();
-            }
-        }
-
-        void release() {
-            _pool.put(this);
+            _buffer = buffer;
         }
 
         inline void *buffer(size_t offset = 0) const {
@@ -399,15 +374,118 @@ protected:
             return _size;
         }
 
+
     public:
         const size_t         _capacity;
 
     private:
         void*                     _buffer;
         size_t                    _size;
-        MemoryPool<Buffer, true>& _pool;
-        ucs_memory_type_t         _memory_type;
     };
+
+    class Buffer {
+    public:
+        Buffer(size_t buffer_size, BufferMemoryPool<Buffer> &pool,
+               ucs_memory_type_t memory_type) :
+            _pool(pool)
+        {
+            switch (memory_type) {
+            case UCS_MEMORY_TYPE_HOST:
+                _impl = new HostBufferImpl(buffer_size);
+                break;
+#ifdef HAVE_CUDA
+            case UCS_MEMORY_TYPE_CUDA:
+                _impl = new CudaBufferImpl(buffer_size);
+                break;
+            case UCS_MEMORY_TYPE_CUDA_MANAGED:
+                _impl = new CudaManagedBufferImpl(buffer_size);
+                break;
+#endif
+            default:
+                LOG << "ERROR: Unsupported memory type requested: "
+                    << memory_type;
+                abort();
+            }
+        }
+
+        BufferImpl *get()
+        {
+            return _impl;
+        }
+
+        void release()
+        {
+            _pool.put(this);
+        }
+
+
+        ~Buffer()
+        {
+            delete _impl;
+        }
+
+    private:
+        BufferMemoryPool<Buffer> &_pool;
+        BufferImpl *_impl;
+    };
+
+
+    class HostBufferImpl : public BufferImpl {
+    public:
+        HostBufferImpl(size_t size) : BufferImpl(size)
+        {
+            setBuffer(memalign(ALIGNMENT, size));
+        }
+
+        ~HostBufferImpl()
+        {
+            free(buffer());
+        }
+    };
+
+#ifdef HAVE_CUDA
+    class CudaMemoryBufferImpl : public BufferImpl {
+    public:
+        CudaMemoryBufferImpl(size_t size) : BufferImpl(size)
+        {
+            void *tmp;
+            cudaError_t cerr = allocate(&tmp, size);
+            if (cerr != cudaSuccess) {
+                tmp = NULL;
+            }
+            setBuffer(tmp);
+        }
+        virtual cudaError_t allocate(void **ptr, size_t size)
+        {
+            abort();
+        };
+
+        ~CudaMemoryBufferImpl()
+        {
+            cudaFree(buffer());
+        }
+    };
+    class CudaBufferImpl : public CudaMemoryBufferImpl {
+        using CudaMemoryBufferImpl::CudaMemoryBufferImpl;
+
+    public:
+        virtual cudaError_t allocate(void **ptr, size_t size)
+        {
+            return cudaMalloc(&ptr, size);
+        }
+    };
+
+    class CudaManagedBufferImpl : public CudaMemoryBufferImpl {
+        using CudaMemoryBufferImpl::CudaMemoryBufferImpl;
+
+    public:
+        virtual cudaError_t allocate(void **ptr, size_t size)
+        {
+            return cudaMallocManaged(&ptr, size, cudaMemAttachGlobal);
+        }
+    };
+#endif
+
 
     class BufferIov {
     public:
@@ -419,13 +497,13 @@ protected:
             return _iov.size();
         }
 
-        void init(size_t data_size, CustomMemoryPool<Buffer, true> &chunk_pool,
+        void init(size_t data_size, BufferMemoryPool<Buffer> &chunk_pool,
                   uint32_t sn, bool validate)
         {
             assert(_iov.empty());
 
             Buffer *chunk = chunk_pool.get();
-            _iov.resize(get_chunk_cnt(data_size, chunk->_capacity));
+            _iov.resize(get_chunk_cnt(data_size, chunk->get()->_capacity));
 
             size_t remaining = init_chunk(0, chunk, data_size);
             for (size_t i = 1; i < _iov.size(); ++i) {
@@ -439,8 +517,9 @@ protected:
             }
         }
 
-        inline Buffer& operator[](size_t i) const {
-            return *_iov[i];
+        inline BufferImpl &operator[](size_t i) const
+        {
+            return *_iov[i]->get();
         }
 
         void release() {
@@ -456,11 +535,10 @@ protected:
             assert(!_iov.empty());
 
             for (size_t iov_err_pos = 0, i = 0; i < _iov.size(); ++i) {
-                size_t buf_err_pos = IoDemoRandom::validate(seed,
-                                                            _iov[i]->buffer(),
-                                                            _iov[i]->size());
+                size_t buf_err_pos = IoDemoRandom::validate(
+                        seed, _iov[i]->get()->buffer(), _iov[i]->get()->size());
                 iov_err_pos       += buf_err_pos;
-                if (buf_err_pos < _iov[i]->size()) {
+                if (buf_err_pos < _iov[i]->get()->size()) {
                     return iov_err_pos;
                 }
             }
@@ -475,13 +553,15 @@ protected:
     private:
         size_t init_chunk(size_t i, Buffer *chunk, size_t remaining) {
             _iov[i] = chunk;
-            _iov[i]->resize(std::min(_iov[i]->_capacity, remaining));
-            return remaining - _iov[i]->size();
+            _iov[i]->get()->resize(
+                    std::min(_iov[i]->get()->_capacity, remaining));
+            return remaining - _iov[i]->get()->size();
         }
 
         void fill_data(unsigned seed) {
             for (size_t i = 0; i < _iov.size(); ++i) {
-                IoDemoRandom::fill(seed, _iov[i]->buffer(), _iov[i]->size());
+                IoDemoRandom::fill(seed, _iov[i]->get()->buffer(),
+                                   _iov[i]->get()->size());
             }
         }
 
@@ -691,7 +771,7 @@ protected:
     MemoryPool<IoMessage>            _io_msg_pool;
     MemoryPool<SendCompleteCallback> _send_callback_pool;
     MemoryPool<BufferIov>            _data_buffers_pool;
-    CustomMemoryPool<Buffer, true>   _data_chunks_pool;
+    BufferMemoryPool<Buffer>         _data_chunks_pool;
 };
 
 class DemoServer : public P2pDemoCommon {
