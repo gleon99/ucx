@@ -168,9 +168,11 @@ private:
 
 template<class BufferType, bool use_offcache = false>
 class MemoryPool : public BaseMemoryPool<BufferType, use_offcache> {
-    using BaseMemoryPool<BufferType, use_offcache>::BaseMemoryPool;
-
 public:
+    MemoryPool(size_t buffer_size, const std::string &name,
+               size_t offcache = 0) :
+                   BaseMemoryPool<BufferType, use_offcache>(buffer_size, name, offcache) {}
+
     virtual BufferType *construct() override
     {
         return new BufferType(this->get_buffer_size(), *this);
@@ -466,9 +468,9 @@ protected:
         }
     };
     class CudaBufferImpl : public CudaMemoryBufferImpl {
-        using CudaMemoryBufferImpl::CudaMemoryBufferImpl;
-
     public:
+        CudaBufferImpl(size_t size) : CudaMemoryBufferImpl(size) {}
+
         virtual cudaError_t allocate(void **ptr, size_t size)
         {
             return cudaMalloc(&ptr, size);
@@ -476,9 +478,9 @@ protected:
     };
 
     class CudaManagedBufferImpl : public CudaMemoryBufferImpl {
-        using CudaMemoryBufferImpl::CudaMemoryBufferImpl;
-
     public:
+        CudaManagedBufferImpl(size_t size) : CudaMemoryBufferImpl(size) {}
+
         virtual cudaError_t allocate(void **ptr, size_t size)
         {
             return cudaMallocManaged(&ptr, size, cudaMemAttachGlobal);
