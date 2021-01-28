@@ -16,7 +16,9 @@ noinst_HEADERS = \
 
 if HAVE_CUDA
 io_demo_CUDA_LDFLAGS = $(CUDA_LDFLAGS)
-io_demo_CUDA_LIBS = $(CUDA_LIBS)
+io_demo_CUDA_LIBS = \
+	$(CUDA_LIBS) \
+	cuda_util/libcuda_util.la
 io_demo_CUDA_CPPFLAGS = $(CUDA_CPPFLAGS) -DHAVE_CUDA
 else
 io_demo_CUDA_LDFLAGS =

@@ -27,6 +27,7 @@
 #ifdef HAVE_CUDA
 #include <cuda.h>
 #include <cuda_runtime.h>
+#include "cuda_util/cuda_util.h"
 #endif
 
 #define ALIGNMENT           4096
@@ -2259,6 +2260,13 @@ int main(int argc, char **argv)
 {
     options_t test_opts;
     int ret;
+
+    int *v;
+    cudaMallocManaged(&v, sizeof(int));
+    printf("v = %d\n", *v);
+    LEO_add2(v);
+    printf("v = %d\n", *v);
+    cudaFree(v);
 
     print_info(argc, argv);
 
