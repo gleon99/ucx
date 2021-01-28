@@ -368,7 +368,7 @@ AC_CONFIG_FILES([
                  src/tools/profile/Makefile
                  test/apps/Makefile
                  test/apps/iodemo/Makefile
-                 test/apps/iodemo/kaki/Makefile
+                 test/apps/iodemo/cuda_util/Makefile
                  test/apps/sockaddr/Makefile
                  test/apps/profiling/Makefile
                  test/mpi/Makefile

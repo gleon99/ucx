@@ -5,7 +5,7 @@
 #
 
 SUBDIRS = \
-	kaki
+	cuda_util
 
 
 bin_PROGRAMS = io_demo
