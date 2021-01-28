@@ -6,6 +6,8 @@
 
 class IoDemoRandom {
 public:
+    IoDemoRandom() { printf("CTOR\n"); }
+    ~IoDemoRandom() { printf("DTOR\n"); }
     static void srand(unsigned seed);
   
     template <typename T>
@@ -32,6 +34,11 @@ public:
                                   size_t size);
 
     static void setMemoryType(ucs_memory_type_t memory_type);
+    
+    static IoDemoRandom & get() {
+        static IoDemoRandom instance;
+        return instance;
+    }
 
 private:
     template <typename T>

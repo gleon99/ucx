@@ -21,7 +21,7 @@ LINK = $(LIBTOOL) --mode=link $(CC) -o $@
 
 comp_noinst = libcuda_util.la
 libcuda_util_la_SOURCES  = cuda_util.cu
-libcuda_util_la_HEADERS  = cuda_util.h
+noinst_HEADERS  = cuda_util.h
 libcuda_util_la_CPPFLAGS =
 
 noinst_LTLIBRARIES = $(comp_noinst)
