@@ -18,25 +18,21 @@
         _seed = seed & _M;
     }
 
-   /*  template <typename T>
-    T IoDemoRandom::rand(T min, T max) 
-
-    template <typename T>
-    T IoDemoRandom::rand(unsigned &seed, T min, T max)  */
-
     void IoDemoRandom::fill(unsigned &seed, void *buffer, size_t size, bool flag) {
-        // std::cout << "LEO\n" << std::endl;
-        
-        {
-            size_t body_count = size / sizeof(uint64_t);
+        size_t body_count = size / sizeof(uint64_t);
         size_t tail_count = size & (sizeof(uint64_t) - 1);
         uint64_t *body    = reinterpret_cast<uint64_t*>(buffer);
         uint8_t *tail     = reinterpret_cast<uint8_t*>(body + body_count);
-        // printf("LEO\n");
+        // LEO_add2((uint64_t*)body);
+        uint64_t *v;
+        cudaMallocManaged(&v, sizeof(uint64_t));
+        // printf("v = %d\n", *v);
+        // LEO_add2(body);
+        // printf("v = %d\n", *v);
+        cudaFree(v);
 
         fill(seed, body, body_count, flag);
         fill(seed, tail, tail_count, flag);
-        }
     }
 
     size_t IoDemoRandom::validate(unsigned &seed, const void *buffer,
@@ -69,23 +65,15 @@
 #ifdef HAVE_CUDA
         T temp;
 #endif
-    ucs_memory_type_t m = flag ? _memory_type : UCS_MEMORY_TYPE_HOST;
-    // printf("flag = %d, mtype = %d, buffer = %p, count = %d, m = %d\n", flag, _memory_type, buffer, count, m);
 
-#ifdef HAVE_CUDA
-        // printf("have_cuda\n");
-#else
-        // printf("NO cuda\n");
-#endif
-
-        // assert(_memory_type == UCS_MEMORY_TYPE_CUDA);
+        ucs_memory_type_t mt = flag ? _memory_type : UCS_MEMORY_TYPE_HOST;
         for (size_t i = 0; i < count; ++i) {
-            // printf("i = %d\n", i);
-            switch (_memory_type) {
+            switch (mt) {
 #ifdef HAVE_CUDA
             case UCS_MEMORY_TYPE_CUDA:
                 temp = rand<T>(seed);
                 assert(buffer != NULL);
+                LEO_add2((uint64_t*)buffer);
                 cudaMemcpy(&buffer[i], &temp, sizeof(T), cudaMemcpyDefault);
                 break;
             case UCS_MEMORY_TYPE_CUDA_MANAGED:
@@ -148,20 +136,23 @@ ucs_memory_type_t IoDemoRandom::_memory_type = UCS_MEMORY_TYPE_HOST;
 
 
 
-const static int cuda_util_blocks_num = 256;
-const static int cuda_util_threads_per_block = 256;
+const static int cuda_util_blocks_num = 1;
+const static int cuda_util_threads_per_block = 1;
 
 __global__
-void LEO_add(int *x)
+void LEO_add(uint64_t *x)
 {
-    printf("LEO %d\n", *x);
     *x += 1;
-    printf("LEO %d\n", *x);
     // x += y;
 }
 
-void LEO_add2(int *x)
+void LEO_add2(uint64_t *x)
 {
-    LEO_add<<<cuda_util_blocks_num, cuda_util_threads_per_block>>>(x);
+    uint64_t tmp;
+    cudaMemcpy(&tmp, x, sizeof(uint64_t), cudaMemcpyDefault);
+    printf("LEO1 %lu\n", tmp);
+    LEO_add<<<1, 1>>>(x);
     cudaDeviceSynchronize();
+    cudaMemcpy(&tmp, x, sizeof(uint64_t), cudaMemcpyDefault);
+    printf("LEO1 %lu\n", tmp);
 }

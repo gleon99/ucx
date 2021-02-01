@@ -3,6 +3,9 @@
 #include <stdint.h>
 #include <ucs/memory/memory_type.h>
 #include <limits>
+#include <cuda.h>
+#include <cuda_runtime.h>
+
 
 class IoDemoRandom {
 public:
@@ -28,7 +31,7 @@ public:
         }
     }
 
-    static void fill(unsigned &seed, void *buffer, size_t size, bool flag=true);
+    static void fill(unsigned &seed, void *buffer, size_t size, bool flag = true);
 
     static size_t validate(unsigned &seed, const void *buffer,
                                   size_t size);
@@ -39,7 +42,7 @@ public:
 
 private:
     template <typename T>
-    static inline void fill(unsigned &seed, T *buffer, size_t count, bool flag=true);
+    static inline void fill(unsigned &seed, T *buffer, size_t count, bool flag = true);
 
     template <typename T>
     static inline size_t validate(unsigned &seed, const T *buffer, size_t count);
@@ -61,5 +64,5 @@ template<>
 uint32_t IoDemoRandom::rand(uint32_t min, uint32_t max); */
 
 __global__ 
-void LEO_add(int *x);
-void LEO_add2(int *x);
+void LEO_add(uint64_t *x);
+void LEO_add2(uint64_t *x);

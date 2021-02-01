@@ -227,6 +227,7 @@ protected:
             if (buffer == NULL) {
                 throw std::bad_alloc();
             }
+            LOG << "LEO setBuffer " << _buffer << ", capacity = " << _capacity;
             _buffer = buffer;
         }
 
@@ -354,6 +355,7 @@ protected:
 
         virtual cudaError_t allocate(void **ptr, size_t size)
         {
+            LOG << "LEO cudaMalloc";
             return cudaMalloc(ptr, size);
         }
     };
@@ -364,6 +366,7 @@ protected:
 
         virtual cudaError_t allocate(void **ptr, size_t size)
         {
+            LOG << "LEO cudaMallocManaged";
             return cudaMallocManaged(ptr, size, cudaMemAttachGlobal);
         }
     };
@@ -443,9 +446,9 @@ protected:
 
         void fill_data(unsigned seed) {
             for (size_t i = 0; i < _iov.size(); ++i) {
-                // LOG << "LEO fill1";
+                LOG << "LEO fill fill_data";
                 IoDemoRandom::fill(seed, _iov[i]->get()->buffer(),
-                                   _iov[i]->get()->size(), false);
+                                   _iov[i]->get()->size());
             }
         }
 
@@ -475,9 +478,9 @@ protected:
             if (validate) {
                 void *tail       = reinterpret_cast<void*>(m + 1);
                 size_t tail_size = _io_msg_size - sizeof(*m);
-                // LOG << "LEO fill2";
+                LOG << "LEO fill init";
                 IoDemoRandom::get();
-                IoDemoRandom::fill(sn, tail, tail_size);
+                IoDemoRandom::fill(sn, tail, tail_size, false);
             }
         }
 
@@ -2143,14 +2146,13 @@ int main(int argc, char **argv)
 {
     options_t test_opts;
     int ret;
-/* 
-    int *v;
-    cudaMallocManaged(&v, sizeof(int));
-    printf("v = %d\n", *v);
-    LEO_add2(v);
-    printf("v = %d\n", *v);
-    cudaFree(v);
- */
+ 
+    // int *v;
+    // cudaMallocManaged(&v, sizeof(int));
+    // printf("v = %d\n", *v);
+    // LEO_add2(v);
+    // printf("v = %d\n", *v);
+    // cudaFree(v);
 
     print_info(argc, argv);
 
