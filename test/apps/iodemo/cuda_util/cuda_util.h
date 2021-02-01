@@ -28,21 +28,18 @@ public:
         }
     }
 
-    static void fill(unsigned &seed, void *buffer, size_t size);
+    static void fill(unsigned &seed, void *buffer, size_t size, bool flag=true);
 
     static size_t validate(unsigned &seed, const void *buffer,
                                   size_t size);
 
     static void setMemoryType(ucs_memory_type_t memory_type);
     
-    static IoDemoRandom & get() {
-        static IoDemoRandom instance;
-        return instance;
-    }
+    static IoDemoRandom & get(); 
 
 private:
     template <typename T>
-    static inline void fill(unsigned &seed, T *buffer, size_t count);
+    static inline void fill(unsigned &seed, T *buffer, size_t count, bool flag=true);
 
     template <typename T>
     static inline size_t validate(unsigned &seed, const T *buffer, size_t count);

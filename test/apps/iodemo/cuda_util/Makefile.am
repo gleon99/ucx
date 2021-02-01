@@ -1,5 +1,6 @@
 NVCC = nvcc
-NVCCFLAGS = 
+NVCCFLAGS = -DHAVE_CUDA
+# NVCCFLAGS = -DHAVE_CUDA
 # if !IS_NON_POWER_ARCH
 # NVCCFLAGS += $(cuda_CFLAGS_FP128)
 # endif
@@ -22,7 +23,12 @@ LINK = $(LIBTOOL) --mode=link $(CC) -o $@
 comp_noinst = libcuda_util.la
 libcuda_util_la_SOURCES  = cuda_util.cu
 noinst_HEADERS  = cuda_util.h
-libcuda_util_la_CPPFLAGS =
+# if HAVE_CUDA
+# libcuda_util_la_CPPFLAGS = $(CUDA_CPPFLAGS) -DHAVE_CUDA
+# libcuda_util_la_CFLAGS = 
+# else
+# libcuda_util_la_CPPFLAGS =
+# endif
 
 noinst_LTLIBRARIES = $(comp_noinst)
 

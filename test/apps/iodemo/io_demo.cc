@@ -216,20 +216,23 @@ protected:
 
     class BufferImpl {
     public:
-        BufferImpl(size_t size) : _capacity(size), _size(0)
+        BufferImpl(size_t size) : _capacity(size), _buffer(NULL), _size(0)
         {
         }
 
+        virtual ~BufferImpl() {}
+
         void setBuffer(void *buffer)
         {
-            if (_buffer == NULL) {
+            if (buffer == NULL) {
                 throw std::bad_alloc();
             }
             _buffer = buffer;
         }
 
-        inline void *buffer(size_t offset = 0) const {
-            return (uint8_t*)_buffer + offset;
+        inline void *buffer() const {
+            assert(_buffer != NULL);
+            return _buffer;
         }
 
         inline void resize(size_t size) {
@@ -241,8 +244,11 @@ protected:
             return _size;
         }
 
+        virtual void init () { abort(); }
+
 
     public:
+        // TODO: "public" needed?
         const size_t         _capacity;
 
     private:
@@ -273,12 +279,15 @@ protected:
                     << memory_type;
                 abort();
             }
+
+            _impl->init();
         }
 
         BufferImpl *get()
         {
             return _impl;
         }
+
 
         void release()
         {
@@ -300,8 +309,11 @@ protected:
     class HostBufferImpl : public BufferImpl {
     public:
         HostBufferImpl(size_t size) : BufferImpl(size)
+        {}
+
+        virtual void init() override
         {
-            setBuffer(memalign(ALIGNMENT, size));
+            setBuffer(memalign(ALIGNMENT, _capacity));
         }
 
         ~HostBufferImpl()
@@ -315,8 +327,12 @@ protected:
     public:
         CudaMemoryBufferImpl(size_t size) : BufferImpl(size)
         {
+        }
+
+        virtual void init() override
+        {
             void *tmp;
-            cudaError_t cerr = allocate(&tmp, size);
+            cudaError_t cerr = allocate(&tmp, _capacity);
             if (cerr != cudaSuccess) {
                 tmp = NULL;
             }
@@ -338,7 +354,7 @@ protected:
 
         virtual cudaError_t allocate(void **ptr, size_t size)
         {
-            return cudaMalloc(&ptr, size);
+            return cudaMalloc(ptr, size);
         }
     };
 
@@ -348,7 +364,7 @@ protected:
 
         virtual cudaError_t allocate(void **ptr, size_t size)
         {
-            return cudaMallocManaged(&ptr, size, cudaMemAttachGlobal);
+            return cudaMallocManaged(ptr, size, cudaMemAttachGlobal);
         }
     };
 #endif
@@ -427,8 +443,9 @@ protected:
 
         void fill_data(unsigned seed) {
             for (size_t i = 0; i < _iov.size(); ++i) {
+                // LOG << "LEO fill1";
                 IoDemoRandom::fill(seed, _iov[i]->get()->buffer(),
-                                   _iov[i]->get()->size());
+                                   _iov[i]->get()->size(), false);
             }
         }
 
@@ -458,6 +475,8 @@ protected:
             if (validate) {
                 void *tail       = reinterpret_cast<void*>(m + 1);
                 size_t tail_size = _io_msg_size - sizeof(*m);
+                // LOG << "LEO fill2";
+                IoDemoRandom::get();
                 IoDemoRandom::fill(sn, tail, tail_size);
             }
         }
@@ -2132,6 +2151,7 @@ int main(int argc, char **argv)
     printf("v = %d\n", *v);
     cudaFree(v);
  */
+
     print_info(argc, argv);
 
     ret = parse_args(argc, argv, &test_opts);

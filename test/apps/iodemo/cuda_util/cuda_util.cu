@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <assert.h>
+#include <iostream>
 #include "cuda_util.h"
 
 
@@ -7,6 +9,11 @@
  * n[i + 1] = (n[i] * A + C) % M
  * where A, C, M used as in glibc
  */
+
+ IoDemoRandom & IoDemoRandom::get() {
+    static IoDemoRandom instance;
+    return instance;
+}
     void IoDemoRandom::srand(unsigned seed) {
         _seed = seed & _M;
     }
@@ -17,14 +24,19 @@
     template <typename T>
     T IoDemoRandom::rand(unsigned &seed, T min, T max)  */
 
-    void IoDemoRandom::fill(unsigned &seed, void *buffer, size_t size) {
-        size_t body_count = size / sizeof(uint64_t);
+    void IoDemoRandom::fill(unsigned &seed, void *buffer, size_t size, bool flag) {
+        // std::cout << "LEO\n" << std::endl;
+        
+        {
+            size_t body_count = size / sizeof(uint64_t);
         size_t tail_count = size & (sizeof(uint64_t) - 1);
         uint64_t *body    = reinterpret_cast<uint64_t*>(buffer);
         uint8_t *tail     = reinterpret_cast<uint8_t*>(body + body_count);
+        // printf("LEO\n");
 
-        fill(seed, body, body_count);
-        fill(seed, tail, tail_count);
+        fill(seed, body, body_count, flag);
+        fill(seed, tail, tail_count, flag);
+        }
     }
 
     size_t IoDemoRandom::validate(unsigned &seed, const void *buffer,
@@ -53,16 +65,27 @@
     }
 
     template <typename T>
-    void IoDemoRandom::fill(unsigned &seed, T *buffer, size_t count) {
+    void IoDemoRandom::fill(unsigned &seed, T *buffer, size_t count, bool flag) {
 #ifdef HAVE_CUDA
         T temp;
 #endif
+    ucs_memory_type_t m = flag ? _memory_type : UCS_MEMORY_TYPE_HOST;
+    // printf("flag = %d, mtype = %d, buffer = %p, count = %d, m = %d\n", flag, _memory_type, buffer, count, m);
 
+#ifdef HAVE_CUDA
+        // printf("have_cuda\n");
+#else
+        // printf("NO cuda\n");
+#endif
+
+        // assert(_memory_type == UCS_MEMORY_TYPE_CUDA);
         for (size_t i = 0; i < count; ++i) {
+            // printf("i = %d\n", i);
             switch (_memory_type) {
 #ifdef HAVE_CUDA
             case UCS_MEMORY_TYPE_CUDA:
                 temp = rand<T>(seed);
+                assert(buffer != NULL);
                 cudaMemcpy(&buffer[i], &temp, sizeof(T), cudaMemcpyDefault);
                 break;
             case UCS_MEMORY_TYPE_CUDA_MANAGED:
