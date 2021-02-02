@@ -9,8 +9,15 @@
 
 class IoDemoRandom {
 public:
-    IoDemoRandom() { printf("CTOR\n"); }
-    ~IoDemoRandom() { printf("DTOR\n"); }
+    IoDemoRandom() { printf("CTOR\n"); 
+        cudaMalloc(&_seed_p, sizeof(unsigned));
+    
+    }
+
+
+    ~IoDemoRandom() { printf("DTOR\n"); 
+        cudaFree(_seed_p);
+    }
     static void srand(unsigned seed);
   
     template <typename T>
@@ -34,7 +41,7 @@ public:
     static void fill(unsigned &seed, void *buffer, size_t size, bool flag = true);
 
     static size_t validate(unsigned &seed, const void *buffer,
-                                  size_t size);
+                                  size_t size, bool flag = true);
 
     static void setMemoryType(ucs_memory_type_t memory_type);
     
@@ -45,13 +52,14 @@ private:
     static inline void fill(unsigned &seed, T *buffer, size_t count, bool flag = true);
 
     template <typename T>
-    static inline size_t validate(unsigned &seed, const T *buffer, size_t count);
+    static inline size_t validate(unsigned &seed, const T *buffer, size_t count, bool flag = true);
 
     static       unsigned     _seed;
     static const unsigned     _A;
     static const unsigned     _C;
     static const unsigned     _M;
     static ucs_memory_type_t _memory_type;
+    static unsigned *_seed_p;
 };
 /* 
 template<>
@@ -85,12 +93,14 @@ __device__
 
 template<typename T>
 __global__
-void cuda_fill(T *dest, unsigned *seed)
+void cuda_fill(T *dest, unsigned *seed, size_t count)
 {
+    for (size_t i = 0; i < count; ++i) {
     // unsigned seed2;
 
     // cudaMemcpy(&seed2, &seed, sizeof(seed), cudaMemcpyDefault);
-     cuda_rand<T>(*seed, dest);
+        cuda_rand<T>(*seed, &dest[i]);
+    }
     //  cudaMemcpy(&seed2, &seed, sizeof(seed), cudaMemcpyDefault);
                 // assert(buffer != NULL);
                 // LEO_add2((uint64_t*)buffer);

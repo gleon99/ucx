@@ -421,6 +421,7 @@ protected:
             assert(!_iov.empty());
 
             for (size_t iov_err_pos = 0, i = 0; i < _iov.size(); ++i) {
+                LOG << "LEO validate iov";
                 size_t buf_err_pos = IoDemoRandom::validate(
                         seed, _iov[i]->get()->buffer(), _iov[i]->get()->size());
                 iov_err_pos       += buf_err_pos;
@@ -446,7 +447,7 @@ protected:
 
         void fill_data(unsigned seed) {
             for (size_t i = 0; i < _iov.size(); ++i) {
-                //LOG << "LEO fill fill_data";
+                LOG << "LEO fill fill_data";
                 IoDemoRandom::fill(seed, _iov[i]->get()->buffer(),
                                    _iov[i]->get()->size());
             }
@@ -478,8 +479,8 @@ protected:
             if (validate) {
                 void *tail       = reinterpret_cast<void*>(m + 1);
                 size_t tail_size = _io_msg_size - sizeof(*m);
-                //LOG << "LEO fill init " << tail_size;
-                IoDemoRandom::get();
+                LOG << "LEO fill iomsg " << tail_size;
+                
                 IoDemoRandom::fill(sn, tail, tail_size, false);
             }
         }
@@ -618,7 +619,8 @@ protected:
         const void *buf = msg + 1;
         size_t buf_size = iomsg_size - sizeof(*msg);
 
-        size_t err_pos  = IoDemoRandom::validate(seed, buf, buf_size);
+        LOG << "LEO validate iomsg";
+        size_t err_pos  = IoDemoRandom::validate(seed, buf, buf_size, false);
         if (err_pos < buf_size) {
             LOG << "ERROR: io msg data corruption at " << err_pos << " position";
             abort();
@@ -1313,9 +1315,9 @@ public:
 
             elapsed_time = curr_time - start_time;
             // TODO: Temp
-            if (elapsed_time > _test_opts.client_timeout*10) {
+            if (elapsed_time > _test_opts.client_timeout) {
                 LOG << "timeout waiting for " << (_num_sent - _num_completed)
-                    << " replies. elapsed = " << elapsed_time << ", wait = " << _test_opts.client_timeout*10;
+                    << " replies. elapsed = " << elapsed_time << ", wait = " << _test_opts.client_timeout;
                 close_uncompleted_servers("timeout for replies");
                 timer_finished = true;
             }
@@ -1845,7 +1847,7 @@ static int parse_args(int argc, char **argv, options_t *test_opts)
     test_opts->iter_count            = 1000;
     test_opts->window_size           = 16;
     test_opts->conn_window_size      = 16;
-    test_opts->random_seed           = std::time(NULL);
+    test_opts->random_seed           = 0; //std::time(NULL);
     test_opts->verbose               = false;
     test_opts->validate              = false;
     test_opts->use_am                = false;
@@ -2161,7 +2163,7 @@ int main(int argc, char **argv)
     if (ret < 0) {
         return ret;
     }
-
+    IoDemoRandom::get();
     if (test_opts.servers.empty()) {
         return do_server(test_opts);
     } else {
