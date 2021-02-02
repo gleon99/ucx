@@ -446,7 +446,7 @@ protected:
 
         void fill_data(unsigned seed) {
             for (size_t i = 0; i < _iov.size(); ++i) {
-                LOG << "LEO fill fill_data";
+                //LOG << "LEO fill fill_data";
                 IoDemoRandom::fill(seed, _iov[i]->get()->buffer(),
                                    _iov[i]->get()->size());
             }
@@ -478,7 +478,7 @@ protected:
             if (validate) {
                 void *tail       = reinterpret_cast<void*>(m + 1);
                 size_t tail_size = _io_msg_size - sizeof(*m);
-                LOG << "LEO fill init";
+                //LOG << "LEO fill init " << tail_size;
                 IoDemoRandom::get();
                 IoDemoRandom::fill(sn, tail, tail_size, false);
             }
@@ -1312,9 +1312,10 @@ public:
             }
 
             elapsed_time = curr_time - start_time;
-            if (elapsed_time > _test_opts.client_timeout) {
+            // TODO: Temp
+            if (elapsed_time > _test_opts.client_timeout*10) {
                 LOG << "timeout waiting for " << (_num_sent - _num_completed)
-                    << " replies";
+                    << " replies. elapsed = " << elapsed_time << ", wait = " << _test_opts.client_timeout*10;
                 close_uncompleted_servers("timeout for replies");
                 timer_finished = true;
             }

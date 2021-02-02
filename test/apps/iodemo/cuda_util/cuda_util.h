@@ -65,4 +65,36 @@ uint32_t IoDemoRandom::rand(uint32_t min, uint32_t max); */
 
 __global__ 
 void LEO_add(uint64_t *x);
+
+template <typename T>
+__device__
+    static void cuda_rand(unsigned &seed, T *dst, T min = std::numeric_limits<T>::min(),
+                         T max = std::numeric_limits<T>::max() - 1) {
+        
+        /* TODO: Cleanup */
+        seed = (seed * 1103515245U + 12345U) & 0x7fffffffU;
+        
+        /* To resolve that LCG returns alternating even/odd values */
+        if (max - min == 1) {
+            *dst = (seed & 0x100) ? max : min;
+        } else {
+            *dst = T(seed) % (max - min + 1) + min;
+        }
+        
+    }
+
+template<typename T>
+__global__
+void cuda_fill(T *dest, unsigned *seed)
+{
+    // unsigned seed2;
+
+    // cudaMemcpy(&seed2, &seed, sizeof(seed), cudaMemcpyDefault);
+     cuda_rand<T>(*seed, dest);
+    //  cudaMemcpy(&seed2, &seed, sizeof(seed), cudaMemcpyDefault);
+                // assert(buffer != NULL);
+                // LEO_add2((uint64_t*)buffer);
+                // cudaMemcpy(&temp, &temp, sizeof(T), cudaMemcpyDefault);
+}
+
 void LEO_add2(uint64_t *x);
