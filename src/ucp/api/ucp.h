@@ -1066,6 +1066,8 @@ typedef struct ucp_worker_attr {
      * If @ref UCP_WORKER_ATTR_FIELD_ADDRESS_FLAGS bit is set in the field_mask,
      * this value should be set as well. Possible flags are specified
      * in @ref ucp_worker_address_flags_t. @note This is an input attribute.
+     * If @ref UCP_WORKER_ADDRESS_FLAG_NET_ONLY is in address_flags, only
+     * network devices are used for bandwidth calculation.
      */
     uint32_t              address_flags;
 
@@ -1090,8 +1092,6 @@ typedef struct ucp_worker_attr {
 
     /**
      * Cumulative bandwidth this worker is able to provide.
-     * If @ref UCP_WORKER_ADDRESS_FLAG_NET_ONLY is in address_flags, only
-     * network devices are used for bandwidth calculation.
      */
     double                bandwidth;
 } ucp_worker_attr_t;
