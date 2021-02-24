@@ -1097,6 +1097,17 @@ typedef struct ucp_worker_attr {
 } ucp_worker_attr_t;
 
 
+
+enum ucp_ep_attr_field {
+    UCP_EP_ATTR_FIELD_BANDWIDTH          = UCS_BIT(0) /**< bandwidth */
+};
+
+typedef struct {
+    uint64_t field_mask;
+    double                bandwidth;
+} ucp_ep_attr_t;
+
+
 /**
  * @ingroup UCP_WORKER
  * @brief Tuning parameters for the UCP worker.
@@ -1863,6 +1874,8 @@ void ucp_worker_destroy(ucp_worker_h worker);
 ucs_status_t ucp_worker_query(ucp_worker_h worker,
                               ucp_worker_attr_t *attr);
 
+
+ucs_status_t ucp_ep_query(ucp_ep_h ep, ucp_ep_attr_t *attr);
 
 /**
  * @ingroup UCP_WORKER

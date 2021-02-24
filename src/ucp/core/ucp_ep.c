@@ -269,6 +269,41 @@ ucp_ep_adjust_params(ucp_ep_h ep, const ucp_ep_params_t *params)
     return UCS_OK;
 }
 
+ucs_status_t ucp_ep_query(ucp_ep_h ep, ucp_ep_attr_t *attr)
+{
+    ucp_worker_h worker = ep->worker;
+    ucp_context_h context = worker->context;
+    ucp_ep_config_t *config = ucp_ep_config(ep);
+    const ucp_ep_config_key_t *key = &config->key;
+    ucs_status_t status = UCS_OK;
+    ucp_lane_index_t lane;
+    ucp_worker_iface_t *wiface;
+    // uct_ep_h uct_ep;
+    // uct_tl_resource_desc_t *rsc;
+    ucp_rsc_index_t rsc_index;
+    double bandwidth;
+
+    if (attr->field_mask & UCP_EP_ATTR_FIELD_BANDWIDTH) {
+        for (lane = 0; lane < ucp_ep_num_lanes(ep); ++lane) {
+            ucs_trace("LEO lane = %d", lane);
+            // TODO: Skip CM lanes
+            rsc_index  = key->lanes[lane].rsc_index;
+            ucs_trace("LEO rsc_index = %d", rsc_index);
+            // rsc        = &context->tl_rscs[rsc_index].tl_rsc;
+            wiface = worker->ifaces[rsc_index];
+            ucs_trace("LEO wiface rsc_index = %d", wiface->rsc_index);
+
+            bandwidth = ucp_tl_iface_bandwidth(context,
+                                                      &wiface->attr.bandwidth);
+            ucs_trace("LEO BW=%f", bandwidth);
+            // uct_ep = ep->uct_eps[lane];
+            
+        }
+    }
+
+    return status;
+}
+
 ucs_status_t ucp_worker_create_mem_type_endpoints(ucp_worker_h worker)
 {
     ucp_context_h context = worker->context;
@@ -2275,6 +2310,8 @@ void ucp_ep_print_info(ucp_ep_h ep, FILE *stream)
     ucp_lane_index_t wireup_msg_lane;
     ucs_string_buffer_t strb;
     uct_ep_h wireup_ep;
+    ucp_ep_attr_t attr;
+    attr.field_mask = UCP_EP_ATTR_FIELD_BANDWIDTH;
 
     UCP_WORKER_THREAD_CS_ENTER_CONDITIONAL(worker);
 
@@ -2295,6 +2332,7 @@ void ucp_ep_print_info(ucp_ep_h ep, FILE *stream)
 
     ucp_ep_config_print(stream, worker, ep, NULL, aux_rsc_index);
     fprintf(stream, "#\n");
+    ucp_ep_query(ep, &attr);
 
     if (worker->context->config.ext.proto_enable) {
         ucs_string_buffer_init(&strb);
