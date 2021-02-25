@@ -332,6 +332,47 @@ enum ucp_ep_close_mode {
 
 
 /**
+ * @ingroup UCP_ENDPOINT
+ * @brief UCP performance fields and flags
+ *
+ * The enumeration allows specifying which fields in @ref ucp_ep_perf_attr_t are
+ * present and operation flags are used. It is used to enable backward
+ * compatibility support.
+ */
+enum ucp_ep_perf_attr_field {
+    /** Enables @ref ucp_ep_perf_attr_t::message_size */
+    UCP_EP_ATTR_FIELD_MESSAGE_SIZE       = UCS_BIT(0),
+
+    /** Enables @ref ucp_ep_perf_attr_t::local_memory_type */
+    UCP_EP_ATTR_FIELD_LOCAL_MEMORY_TYPE  = UCS_BIT(1),
+
+    /** Enables @ref ucp_ep_perf_attr_t::remote_memory_type */
+    UCP_EP_ATTR_FIELD_REMOTE_MEMORY_TYPE = UCS_BIT(2),
+
+    /** Enables @ref ucp_ep_perf_attr_t::operation */
+    UCP_EP_ATTR_FIELD_OPERATION          = UCS_BIT(3),
+
+    /** Enables @ref ucp_ep_perf_attr_t::bandwidth */
+    UCP_EP_ATTR_FIELD_BANDWIDTH          = UCS_BIT(4)
+};
+
+
+/**
+ * @ingroup UCP_ENDPOINT
+ * @brief All existing UCP operations
+ * 
+ * This enumeration defines all available UCP operations.
+ */
+typedef enum ucp_ep_op {
+    UCP_OP_TAG,   /**< Tag matching */
+    UCP_OP_AM,    /**< Active messge */
+    UCP_OP_RMA,   /**< Remote memory access */
+    UCP_OP_AMO32, /**< 32-bit atomic operations */
+    UCP_OP_AMO64  /**< 64-bit atomic operations */
+} uct_ep_op_t;
+
+
+/**
  * @ingroup UCP_MEM
  * @brief UCP memory mapping parameters field mask.
  *
@@ -1097,15 +1138,46 @@ typedef struct ucp_worker_attr {
 } ucp_worker_attr_t;
 
 
-
-enum ucp_ep_attr_field {
-    UCP_EP_ATTR_FIELD_BANDWIDTH          = UCS_BIT(0) /**< bandwidth */
-};
-
 typedef struct {
-    uint64_t field_mask;
-    double                bandwidth;
-} ucp_ep_attr_t;
+    /**
+     * Mask of valid fields in this structure, using bits from
+     * @ref ucp_ep_perf_attr_field.
+     * Fields not specified in this mask will be ignored.
+     * Provides ABI compatibility with respect to adding new fields.
+     */
+    uint64_t          field_mask;
+
+    /**
+     * Message size to use for determining performance.
+     * This field must be initialized by the caller.
+     */
+    size_t            message_size;
+
+    /**
+     * Local memory type to use for determining performance.
+     * This field must be initialized by the caller.
+     */
+    ucs_memory_type_t local_memory_type;
+
+    /**
+     * Remote memory type to use for determining performance.
+     * Relevant only for operations that have remote memory access.
+     * This field must be initialized by the caller.
+     */
+    ucs_memory_type_t remote_memory_type;
+
+    /**
+     * Operation to report performance for.
+     * This field must be initialized by the caller.
+     */
+    uct_ep_op_t       operation;
+
+    /**
+     * Bandwidth this endpoint is able to provide.
+     * This field is set by the UCP layer.
+     */
+    double            bandwidth;
+} ucp_ep_perf_attr_t;
 
 
 /**
@@ -1875,7 +1947,7 @@ ucs_status_t ucp_worker_query(ucp_worker_h worker,
                               ucp_worker_attr_t *attr);
 
 
-ucs_status_t ucp_ep_query(ucp_ep_h ep, ucp_ep_attr_t *attr);
+ucs_status_t ucp_ep_perf_query(ucp_ep_h ep, ucp_ep_perf_attr_t *attr);
 
 /**
  * @ingroup UCP_WORKER
