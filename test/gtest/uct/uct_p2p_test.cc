@@ -150,6 +150,7 @@ void uct_p2p_test::test_xfer_multi(send_func_t send, size_t min_length,
 {
     for (size_t i = 0; i < mem_buffer::supported_mem_types().size(); ++i) {
         ucs_memory_type_t mem_type = mem_buffer::supported_mem_types()[i];
+        ucs_warn("Mem type %d", mem_type);
         /* test mem type if md supports mem type
          * (or) if HOST MD can register mem type
          */
@@ -229,6 +230,7 @@ void uct_p2p_test::test_xfer_multi_mem_type(send_func_t send, size_t min_length,
     }
 
     for (int i = 0; i < repeat_count; ++i) {
+        ucs_warn("Rep no. %d", i);
         double exp = (ucs::rand() * (log_max - log_min)) / RAND_MAX + log_min;
         size_t length = (ssize_t)pow(2.0, exp);
         ucs_assert(length >= min_length && length <= max_length);
