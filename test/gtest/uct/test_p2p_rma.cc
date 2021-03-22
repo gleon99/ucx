@@ -71,26 +71,26 @@ void uct_p2p_rma_test::test_xfer(send_func_t send, size_t length,
 {
     ucs_memory_type_t src_mem_type = UCS_MEMORY_TYPE_HOST;
 
-    ucs_warn("Length = %lu", length);
+    // ucs_warn("Length = %lu", length);
     if (has_transport("cuda_ipc")) {
         src_mem_type = mem_type;
     }
 
     mapped_buffer sendbuf(length, SEED1, sender(), 1, src_mem_type);
-    ucs_warn("1");
+    // ucs_warn("1");
     mapped_buffer recvbuf(length, SEED2, receiver(), 3, mem_type);
-    ucs_warn("2");
+    // ucs_warn("2");
 
     blocking_send(send, sender_ep(), sendbuf, recvbuf, true);
-    ucs_warn("3");
+    // ucs_warn("3");
     if (flags & TEST_UCT_FLAG_SEND_ZCOPY) {
-        ucs_warn("4");
+        // ucs_warn("4");
         sendbuf.pattern_fill(SEED3);
-        ucs_warn("5");
+        // ucs_warn("5");
         wait_for_remote();
-        ucs_warn("6");
+        // ucs_warn("6");
         recvbuf.pattern_check(SEED1);
-        ucs_warn("7");
+        // ucs_warn("7");
     } else if (flags & TEST_UCT_FLAG_RECV_ZCOPY) {
         ucs_warn("8");
         recvbuf.pattern_fill(SEED3);

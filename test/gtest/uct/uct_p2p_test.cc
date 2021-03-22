@@ -150,7 +150,7 @@ void uct_p2p_test::test_xfer_multi(send_func_t send, size_t min_length,
 {
     for (size_t i = 0; i < mem_buffer::supported_mem_types().size(); ++i) {
         ucs_memory_type_t mem_type = mem_buffer::supported_mem_types()[i];
-        ucs_warn("Mem type %d", mem_type);
+        //ucs_warn("Mem type %d", mem_type);
         /* test mem type if md supports mem type
          * (or) if HOST MD can register mem type
          */
@@ -173,77 +173,85 @@ void uct_p2p_test::test_xfer_multi_mem_type(send_func_t send, size_t min_length,
                                             size_t max_length, unsigned flags,
                                             ucs_memory_type_t mem_type) {
 
-    ucs::detail::message_stream ms("INFO");
+#define P2P_TEST_LENGTH (4096)
+    //ucs::detail::message_stream ms("INFO");
 
-    ms << "memory_type:" << ucs_memory_type_names[mem_type] << " " << std::flush;
+    // ms << "memory_type:" << ucs_memory_type_names[mem_type] << " " << std::flush;
 
-    /* Trim at 4.1 GB */
-    max_length = ucs_min(max_length, (size_t)(4.1 * (double)UCS_GBYTE));
+    // /* Trim at 4.1 GB */
+    // max_length = ucs_min(max_length, (size_t)(4.1 * (double)UCS_GBYTE));
 
-    /* Trim at max. phys memory */
-    max_length = ucs_min(max_length, ucs_get_phys_mem_size() / 8);
+    // /* Trim at max. phys memory */
+    // max_length = ucs_min(max_length, ucs_get_phys_mem_size() / 8);
 
-    /* Trim at max. shared memory */
-    max_length = ucs_min(max_length, ucs_get_shmmax() * 0.8);
+    // /* Trim at max. shared memory */
+    // max_length = ucs_min(max_length, ucs_get_shmmax() * 0.8);
 
-    /* Trim when short of available memory */
-    max_length = ucs_min(max_length, ucs_get_memfree_size() / 4);
+    // /* Trim when short of available memory */
+    // max_length = ucs_min(max_length, ucs_get_memfree_size() / 4);
 
-    /* For large size, slow down if needed */
-    if (max_length > UCS_MBYTE) {
-        max_length = max_length / ucs::test_time_multiplier();
-        if (RUNNING_ON_VALGRIND) {
-            max_length = ucs_min(max_length, 20u * UCS_MBYTE);
-        }
-    }
+    // /* For large size, slow down if needed */
+    // if (max_length > UCS_MBYTE) {
+    //     max_length = max_length / ucs::test_time_multiplier();
+    //     if (RUNNING_ON_VALGRIND) {
+    //         max_length = ucs_min(max_length, 20u * UCS_MBYTE);
+    //     }
+    // }
 
-    if (max_length <= min_length) {
-        UCS_TEST_SKIP;
-    }
+    // if (max_length <= min_length) {
+    //     UCS_TEST_SKIP;
+    // }
 
-    m_null_completion = false;
+    // m_null_completion = false;
 
     /* Run with min and max values */
-    test_xfer_print(ms, send, min_length, flags, mem_type);
-    test_xfer_print(ms, send, max_length, flags, mem_type);
+    //test_xfer_print(ms, send, min_length, flags, mem_type);
+    //test_xfer_print(ms, send, max_length, flags, mem_type);
 
     /*
      * Generate SQRT( log(max/min) ) random sizes
      */
-    double log_min = log2(min_length + 1);
-    double log_max = log2(max_length - 1);
+    // double log_min = log2(min_length + 1);
+    // double log_max = log2(max_length - 1);
 
     /* How many times to repeat */
-    int repeat_count;
-    repeat_count = (256 * UCS_KBYTE) / ((max_length + min_length) / 2);
-    if (repeat_count > 1000) {
-        repeat_count = 1000;
-    }
-    repeat_count /= ucs::test_time_multiplier();
-    if (repeat_count == 0) {
-        repeat_count = 1;
-    }
+    int repeat_count = 64;
+    // repeat_count = (256 * UCS_KBYTE) / ((max_length + min_length) / 2);
+    // if (repeat_count > 1000) {
+    //     repeat_count = 1000;
+    // }
+    // repeat_count /= ucs::test_time_multiplier();
+    // if (repeat_count == 0) {
+    //     repeat_count = 1;
+    // }
 
-    if (!ucs_log_is_enabled(UCS_LOG_LEVEL_TRACE_DATA)) {
-        ms << repeat_count << "x{" << ucs::size_value(min_length) << ".."
-           << ucs::size_value(max_length) << "} " << std::flush;
-    }
+    // if (!ucs_log_is_enabled(UCS_LOG_LEVEL_TRACE_DATA)) {
+    //     ms << repeat_count << "x{" << ucs::size_value(min_length) << ".."
+    //        << ucs::size_value(max_length) << "} " << std::flush;
+    // }
+    ucs_time_t time = ucs_get_time();
+    ucs_time_t time2;
+    // ucs_warn("Start time: %lu", time);
 
     for (int i = 0; i < repeat_count; ++i) {
-        ucs_warn("Rep no. %d", i);
-        double exp = (ucs::rand() * (log_max - log_min)) / RAND_MAX + log_min;
-        size_t length = (ssize_t)pow(2.0, exp);
+        // ucs_warn("Rep no. %d", i);
+        // double exp = (ucs::rand() * (log_max - log_min)) / RAND_MAX + log_min;
+        // size_t length = (ssize_t)pow(2.0, exp);
+        size_t length = P2P_TEST_LENGTH;
         ucs_assert(length >= min_length && length <= max_length);
         test_xfer(send, length, flags, mem_type);
     }
 
     /* Run a test with implicit non-blocking mode */
     m_null_completion = true;
-    ms << "nocomp ";
-    test_xfer_print(ms, send, (long)sqrt((min_length + 1.0) * max_length),
-                    flags, mem_type);
+    //ms << "nocomp ";
+    //test_xfer_print(ms, send, (long)sqrt((min_length + 1.0) * max_length),
+    //                flags, mem_type);
 
     sender().flush();
+
+    time = ucs_get_time() - time;
+    printf("Elapsed time: %lu\n", ucs_time_to_usec(time));
 }
 
 void uct_p2p_test::blocking_send(send_func_t send, uct_ep_h ep,
