@@ -173,7 +173,7 @@ void uct_p2p_test::test_xfer_multi_mem_type(send_func_t send, size_t min_length,
                                             size_t max_length, unsigned flags,
                                             ucs_memory_type_t mem_type) {
 
-#define P2P_TEST_LENGTH (4096)
+#define P2P_TEST_LENGTH (256*1024)
     //ucs::detail::message_stream ms("INFO");
 
     // ms << "memory_type:" << ucs_memory_type_names[mem_type] << " " << std::flush;
@@ -215,7 +215,9 @@ void uct_p2p_test::test_xfer_multi_mem_type(send_func_t send, size_t min_length,
     // double log_max = log2(max_length - 1);
 
     /* How many times to repeat */
-    int repeat_count = 64;
+    int repeat_count = 6400000000;
+    size_t length = P2P_TEST_LENGTH;
+    size_t total = repeat_count * length;
     // repeat_count = (256 * UCS_KBYTE) / ((max_length + min_length) / 2);
     // if (repeat_count > 1000) {
     //     repeat_count = 1000;
@@ -230,14 +232,14 @@ void uct_p2p_test::test_xfer_multi_mem_type(send_func_t send, size_t min_length,
     //        << ucs::size_value(max_length) << "} " << std::flush;
     // }
     ucs_time_t time = ucs_get_time();
-    ucs_time_t time2;
+    double time_usec;
+    // ucs_time_t time2;
     // ucs_warn("Start time: %lu", time);
 
     for (int i = 0; i < repeat_count; ++i) {
         // ucs_warn("Rep no. %d", i);
         // double exp = (ucs::rand() * (log_max - log_min)) / RAND_MAX + log_min;
         // size_t length = (ssize_t)pow(2.0, exp);
-        size_t length = P2P_TEST_LENGTH;
         ucs_assert(length >= min_length && length <= max_length);
         test_xfer(send, length, flags, mem_type);
     }
@@ -251,7 +253,10 @@ void uct_p2p_test::test_xfer_multi_mem_type(send_func_t send, size_t min_length,
     sender().flush();
 
     time = ucs_get_time() - time;
-    printf("Elapsed time: %lu\n", ucs_time_to_usec(time));
+    time_usec = ucs_time_to_usec(time);
+    printf("Elapsed time (usec): %f, total length (bytes): %lu, BW (MB/s): %f\n", time_usec, total,
+    (total / time_usec)
+    );
 }
 
 void uct_p2p_test::blocking_send(send_func_t send, uct_ep_h ep,
