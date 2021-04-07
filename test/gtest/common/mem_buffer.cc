@@ -175,6 +175,7 @@ void mem_buffer::release(void *ptr, ucs_memory_type_t mem_type)
 
 void mem_buffer::pattern_fill(void *buffer, size_t length, uint64_t seed)
 {
+    abort();
     uint64_t *ptr = (uint64_t*)buffer;
     char *end = (char *)buffer + length;
 
@@ -219,6 +220,7 @@ void mem_buffer::pattern_check(const void *buffer, size_t length, uint64_t seed)
 
 void mem_buffer::pattern_check(const void *buffer, size_t length)
 {
+    abort();
     if (length > sizeof(uint64_t)) {
         pattern_check(buffer, length, *(const uint64_t*)buffer);
     }
@@ -227,6 +229,7 @@ void mem_buffer::pattern_check(const void *buffer, size_t length)
 void mem_buffer::pattern_fill(void *buffer, size_t length, uint64_t seed,
                               ucs_memory_type_t mem_type)
 {
+    abort();
     if (UCP_MEM_IS_HOST(mem_type)) {
         pattern_fill(buffer, length, seed);
     } else {
@@ -239,6 +242,7 @@ void mem_buffer::pattern_fill(void *buffer, size_t length, uint64_t seed,
 void mem_buffer::pattern_check(const void *buffer, size_t length, uint64_t seed,
                                ucs_memory_type_t mem_type)
 {
+    abort();
     if (UCP_MEM_IS_HOST(mem_type)) {
         pattern_check(buffer, length, seed);
     } else {
@@ -251,6 +255,7 @@ void mem_buffer::pattern_check(const void *buffer, size_t length, uint64_t seed,
 void mem_buffer::copy_to(void *dst, const void *src, size_t length,
                          ucs_memory_type_t dst_mem_type)
 {
+    abort();
     switch (dst_mem_type) {
     case UCS_MEMORY_TYPE_HOST:
     case UCS_MEMORY_TYPE_ROCM_MANAGED:
@@ -278,6 +283,7 @@ void mem_buffer::copy_to(void *dst, const void *src, size_t length,
 void mem_buffer::copy_from(void *dst, const void *src, size_t length,
                            ucs_memory_type_t src_mem_type)
 {
+    abort();
     switch (src_mem_type) {
     case UCS_MEMORY_TYPE_HOST:
     case UCS_MEMORY_TYPE_ROCM_MANAGED:

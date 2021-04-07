@@ -164,6 +164,7 @@ void uct_p2p_test::test_xfer_multi(send_func_t send, size_t min_length,
                 continue;
             }
         }
+        printf("mem_type = %d\n", mem_type);
         test_xfer_multi_mem_type(send, min_length, max_length, flags,
                                  (ucs_memory_type_t) mem_type);
     }
@@ -215,7 +216,7 @@ void uct_p2p_test::test_xfer_multi_mem_type(send_func_t send, size_t min_length,
     // double log_max = log2(max_length - 1);
 
     /* How many times to repeat */
-    int repeat_count = 6400000000;
+    int repeat_count = 1;
     size_t length = P2P_TEST_LENGTH;
     size_t total = repeat_count * length;
     // repeat_count = (256 * UCS_KBYTE) / ((max_length + min_length) / 2);
@@ -301,6 +302,7 @@ void uct_p2p_test::blocking_send(send_func_t send, uct_ep_h ep,
              *  not be able to send PUT ACK to an initiator in case of TCP) */
             flush(); 
         } else {
+            // Add a 128 windows
             /* explicit non-blocking mode */
             while (m_completion_count <= prev_comp_count) {
                 progress();
@@ -314,6 +316,7 @@ void uct_p2p_test::wait_for_remote() {
     /* Call flush on local and remote ifaces to progress data
      * (e.g. if call flush only on local iface, a target side may
      *  not be able to send PUT ACK to an initiator in case of TCP) */
+    abort();
     flush();
 }
 

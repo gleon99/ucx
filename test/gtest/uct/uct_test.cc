@@ -1315,7 +1315,7 @@ uct_test::mapped_buffer::mapped_buffer(size_t size, uint64_t seed,
         }
         m_buf = (char*)m_mem.address + offset;
         m_end = (char*)m_buf         + size;
-        pattern_fill(seed);
+        //pattern_fill(seed);
     } else {
         m_mem.method  = UCT_ALLOC_METHOD_LAST;
         m_mem.address = NULL;
