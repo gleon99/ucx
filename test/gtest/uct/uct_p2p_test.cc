@@ -218,7 +218,7 @@ void uct_p2p_test::test_xfer_multi_mem_type(send_func_t send, size_t min_length,
     /* How many times to repeat */
     int repeat_count = 1;
     size_t length = P2P_TEST_LENGTH;
-    size_t total = repeat_count * length;
+    size_t total = P2P_TEST_ITER * length;
     // repeat_count = (256 * UCS_KBYTE) / ((max_length + min_length) / 2);
     // if (repeat_count > 1000) {
     //     repeat_count = 1000;
@@ -265,9 +265,14 @@ void uct_p2p_test::blocking_send(send_func_t send, uct_ep_h ep,
                                  const mapped_buffer &recvbuf,
                                  bool wait_for_completion)
 {
+    #define MAX_OUTSTANDING (128)
     unsigned prev_comp_count = m_completion_count;
 
     ucs_assert(m_completion.uct.count == 0);
+    //printf("1 blocking_send %d %d %d\n", prev_comp_count, m_completion.uct.count, m_completion_count);
+    while (m_completion.uct.count > MAX_OUTSTANDING) {
+        progress();
+    }
 
     ucs_status_t status;
     do {
@@ -291,6 +296,7 @@ void uct_p2p_test::blocking_send(send_func_t send, uct_ep_h ep,
             UCS_TEST_ABORT(ucs_status_string(status));
         }
     } while (status == UCS_ERR_NO_RESOURCE);
+    //printf("2 blocking_send %d %d %d\n", prev_comp_count, m_completion.uct.count, m_completion_count);
 
     /* Operation in progress, wait for completion */
     ucs_assert(status == UCS_INPROGRESS);
@@ -302,7 +308,7 @@ void uct_p2p_test::blocking_send(send_func_t send, uct_ep_h ep,
              *  not be able to send PUT ACK to an initiator in case of TCP) */
             flush(); 
         } else {
-            // Add a 128 windows
+            // Add a 128 window
             /* explicit non-blocking mode */
             while (m_completion_count <= prev_comp_count) {
                 progress();
@@ -310,6 +316,7 @@ void uct_p2p_test::blocking_send(send_func_t send, uct_ep_h ep,
             EXPECT_EQ(0, m_completion.uct.count);
         }
     }
+    //printf("3 blocking_send %d %d %d\n", prev_comp_count, m_completion.uct.count, m_completion_count);
 }
 
 void uct_p2p_test::wait_for_remote() {

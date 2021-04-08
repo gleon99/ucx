@@ -9,6 +9,8 @@
 
 #include "uct_test.h"
 
+#define P2P_TEST_ITER (64000)
+
 /**
  * Point-to-point UCT test.
  */

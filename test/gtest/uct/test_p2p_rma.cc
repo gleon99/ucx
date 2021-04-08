@@ -69,12 +69,12 @@ ucs_status_t uct_p2p_rma_test::get_zcopy(uct_ep_h ep, const mapped_buffer &sendb
 void uct_p2p_rma_test::test_xfer(send_func_t send, size_t length,
                                  unsigned flags, ucs_memory_type_t mem_type)
 {
-    ucs_memory_type_t src_mem_type = mem_type;
-    int repeat_count = 640000000;
+    ucs_memory_type_t src_mem_type = UCS_MEMORY_TYPE_HOST;
+    int repeat_count = P2P_TEST_ITER;
     // ucs_warn("Length = %lu", length);
-    // if (has_transport("cuda_ipc")) {
+    if (has_transport("cuda_ipc")) {
         src_mem_type = mem_type;
-    // }
+    }
 
     mapped_buffer sendbuf(length, SEED1, sender(), 1, src_mem_type);
     mapped_buffer recvbuf(length, SEED2, receiver(), 3, mem_type);
