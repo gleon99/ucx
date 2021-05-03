@@ -428,6 +428,12 @@ static void ucs_rcache_region_invalidate(ucs_rcache_t *rcache,
     }
 
      ucs_rcache_region_put_internal(rcache, region, flags);
+     // Try to pass null context -> need to lock by myself. Add a lock or use the one of inv_queue.
+     // if (region->size > THRESH) { 
+     // sched an async event around here; avoid allocations (heap lock).
+     // thread on demand / thread per each rcache / one global thread / .. global fd, attach
+     // async
+     // } ...
 }
 
 /* Lock must be held in write mode */

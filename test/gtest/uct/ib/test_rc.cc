@@ -80,6 +80,34 @@ UCS_TEST_SKIP_COND_P(test_rc, stress_iface_ops,
     test_iface_ops(cq_len);
 }
 
+UCS_TEST_P(test_rc, test_leo) {
+    entity *e = uct_test::create_entity(0);
+    m_entities.push_back(e);
+    e->connect(0, *m_e2, 0);
+
+    mapped_buffer sendbuf(10000000, 0ul, *e);
+    mapped_buffer recvbuf(10000000, 0ul, *m_e2);
+    uct_completion_t comp;
+    comp.count = 1000;
+    comp.func  = NULL;
+
+    UCS_TEST_GET_BUFFER_IOV(iov, iovcnt, sendbuf.ptr(), sendbuf.length(),
+                            sendbuf.memh(), m_e1->iface_attr().cap.put.max_iov);
+    for (int i = 0; i < 200; i++) {
+        uct_ep_put_zcopy(e->ep(0), iov, iovcnt,
+                         recvbuf.addr(),
+                         recvbuf.rkey(), &comp);
+
+        // Create some stress on iface (flush mp):
+        // post 10 flushes per every put.
+        for (int j = 0; j < 10; j++) {
+            ASSERT_UCS_OK_OR_INPROGRESS(uct_ep_flush(e->ep(0), 0, &comp));
+        }
+    }
+
+    flush();
+}
+
 UCS_TEST_P(test_rc, tx_cq_moderation) {
     unsigned tx_mod   = ucs_min(rc_iface(m_e1)->config.tx_moderation / 4, 8);
     int16_t init_rsc  = rc_ep(m_e1)->txqp.available;
