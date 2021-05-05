@@ -998,7 +998,7 @@ UCS_TEST_P(test_ucp_am_nbx_dts, long_zcopy_send, "ZCOPY_THRESH=1",
     test_am(64 * UCS_KBYTE);
 }
 
-UCS_TEST_P(test_ucp_am_nbx_dts, test_leo2, "ZCOPY_THRESH=1",
+UCS_TEST_P(test_ucp_am_nbx_dts, test_le22, "ZCOPY_THRESH=1",
                                                  "RNDV_THRESH=-1")
 {
     test_am(64*32 * UCS_KBYTE);
