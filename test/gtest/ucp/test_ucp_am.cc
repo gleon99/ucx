@@ -427,7 +427,9 @@ protected:
     {
         size_t small_hdr_size = 8;
 
-        test_am_send_recv(size, 0, flags);
+        for (int i = 0; i < 10; i++) {
+            test_am_send_recv(size, 0, flags);
+        }
         test_am_send_recv(size, small_hdr_size, flags);
 
         if (max_am_hdr() > small_hdr_size) {
@@ -924,16 +926,16 @@ public:
     static void get_test_dts_reply(std::vector<ucp_test_variant>& variants)
     {
         add_variant_values(variants, base_test_generator, 0);
-        add_variant_values(variants, base_test_generator, UCP_AM_SEND_REPLY,
-                           "reply");
+        //add_variant_values(variants, base_test_generator, UCP_AM_SEND_REPLY,
+         //                  "reply");
     }
 
     static void get_test_variants(std::vector<ucp_test_variant>& variants)
     {
         add_variant_values(variants, get_test_dts_reply,
                            UCP_ERR_HANDLING_MODE_NONE);
-        add_variant_values(variants, get_test_dts_reply,
-                           UCP_ERR_HANDLING_MODE_PEER, "errh");
+        //add_variant_values(variants, get_test_dts_reply,
+       //                    UCP_ERR_HANDLING_MODE_PEER, "errh");
     }
 
     void init()
@@ -995,6 +997,13 @@ UCS_TEST_P(test_ucp_am_nbx_dts, long_zcopy_send, "ZCOPY_THRESH=1",
 {
     test_am(64 * UCS_KBYTE);
 }
+
+UCS_TEST_P(test_ucp_am_nbx_dts, test_leo2, "ZCOPY_THRESH=1",
+                                                 "RNDV_THRESH=-1")
+{
+    test_am(64*32 * UCS_KBYTE);
+}
+
 
 UCS_TEST_P(test_ucp_am_nbx_dts, send_eager_flag, "RNDV_THRESH=128")
 {

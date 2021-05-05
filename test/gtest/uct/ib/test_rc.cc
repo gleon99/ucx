@@ -8,7 +8,8 @@
 #include "test_rc.h"
 #include <uct/ib/rc/verbs/rc_verbs.h>
 #include <uct/test_peer_failure.h>
-
+#include <sys/time.h>
+#include <sys/resource.h>
 
 void test_rc::init()
 {
@@ -80,15 +81,35 @@ UCS_TEST_SKIP_COND_P(test_rc, stress_iface_ops,
     test_iface_ops(cq_len);
 }
 
+#include <iostream>
+#include <fstream>
+
+void print_stats()
+{
+    //using namespace std;
+    std::ifstream f("/proc/self/status");
+    char s[500];
+    while (f.getline(s, 256)) {
+        if (strstr(s, "VmRSS") != NULL) {
+            printf("%s\n", s);
+        }
+    }
+    // std::cout << f.rdbuf() << "\n";
+    // std::cout <
+    f.close();
+}
+
 UCS_TEST_P(test_rc, test_leo) {
     entity *e = uct_test::create_entity(0);
+    struct rusage usage;
+
     m_entities.push_back(e);
     e->connect(0, *m_e2, 0);
 
-    mapped_buffer sendbuf(10000000, 0ul, *e);
-    mapped_buffer recvbuf(10000000, 0ul, *m_e2);
+    mapped_buffer sendbuf(100000, 0ul, *e);
+    mapped_buffer recvbuf(100000, 0ul, *m_e2);
     uct_completion_t comp;
-    comp.count = 1000;
+    comp.count = 200000;
     comp.func  = NULL;
 
     UCS_TEST_GET_BUFFER_IOV(iov, iovcnt, sendbuf.ptr(), sendbuf.length(),
@@ -106,6 +127,15 @@ UCS_TEST_P(test_rc, test_leo) {
     }
 
     flush();
+    //sleep(3);
+
+    if (getrusage(RUSAGE_SELF, &usage) != 0) {
+        printf("BAD\n");
+    } else {
+        printf("Stats: %lu, %lu, %lu\n", usage.ru_ixrss, usage.ru_idrss, usage.ru_isrss);
+        print_stats();
+    }
+
 }
 
 UCS_TEST_P(test_rc, tx_cq_moderation) {

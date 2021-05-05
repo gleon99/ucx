@@ -84,6 +84,7 @@ static UCS_F_ALWAYS_INLINE void
 ucs_rcache_check_inv_queue_fast(ucs_rcache_t *rcache)
 {
     if (ucs_unlikely(!ucs_queue_is_empty(&rcache->inv_q))) {
+        abort();
         ucs_rcache_check_inv_queue_slow(rcache);
     }
 }

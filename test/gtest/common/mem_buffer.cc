@@ -175,46 +175,46 @@ void mem_buffer::release(void *ptr, ucs_memory_type_t mem_type)
 
 void mem_buffer::pattern_fill(void *buffer, size_t length, uint64_t seed)
 {
-    uint64_t *ptr = (uint64_t*)buffer;
-    char *end = (char *)buffer + length;
+    // uint64_t *ptr = (uint64_t*)buffer;
+    // char *end = (char *)buffer + length;
 
-    while ((char*)(ptr + 1) <= end) {
-        *ptr = seed;
-        seed = pat(seed);
-        ++ptr;
-    }
-    memcpy(ptr, &seed, end - (char*)ptr);
+    // while ((char*)(ptr + 1) <= end) {
+    //     *ptr = seed;
+    //     seed = pat(seed);
+    //     ++ptr;
+    // }
+    // memcpy(ptr, &seed, end - (char*)ptr);
 }
 
 void mem_buffer::pattern_check(const void *buffer, size_t length, uint64_t seed)
 {
-    const char* end = (const char*)buffer + length;
-    const uint64_t *ptr = (const uint64_t*)buffer;
+    // const char* end = (const char*)buffer + length;
+    // const uint64_t *ptr = (const uint64_t*)buffer;
 
-    while ((const char*)(ptr + 1) <= end) {
-       if (*ptr != seed) {
-            UCS_TEST_ABORT("At offset " << ((const char*)ptr - (const char*)buffer) << ": " <<
-                           "Expected: 0x" << std::hex << seed << " " <<
-                           "Got: 0x" << std::hex << (*ptr) << std::dec);
-        }
-        seed = pat(seed);
-        ++ptr;
-    }
+    // while ((const char*)(ptr + 1) <= end) {
+    //    if (*ptr != seed) {
+    //         UCS_TEST_ABORT("At offset " << ((const char*)ptr - (const char*)buffer) << ": " <<
+    //                        "Expected: 0x" << std::hex << seed << " " <<
+    //                        "Got: 0x" << std::hex << (*ptr) << std::dec);
+    //     }
+    //     seed = pat(seed);
+    //     ++ptr;
+    // }
 
-    size_t remainder = (end - (const char*)ptr);
-    if (remainder > 0) {
-        ucs_assert(remainder < sizeof(*ptr));
-        uint64_t mask = UCS_MASK_SAFE(remainder * 8 * sizeof(char));
-        uint64_t value = 0;
-        memcpy(&value, ptr, remainder);
-        if (value != (seed & mask)) {
-             UCS_TEST_ABORT("At offset " << ((const char*)ptr - (const char*)buffer) <<
-                            " (remainder " << remainder << ") : " <<
-                            "Expected: 0x" << std::hex << (seed & mask) << " " <<
-                            "Mask: 0x" << std::hex << mask << " " <<
-                            "Got: 0x" << std::hex << value << std::dec);
-         }
-    }
+    // size_t remainder = (end - (const char*)ptr);
+    // if (remainder > 0) {
+    //     ucs_assert(remainder < sizeof(*ptr));
+    //     uint64_t mask = UCS_MASK_SAFE(remainder * 8 * sizeof(char));
+    //     uint64_t value = 0;
+    //     memcpy(&value, ptr, remainder);
+    //     if (value != (seed & mask)) {
+    //          UCS_TEST_ABORT("At offset " << ((const char*)ptr - (const char*)buffer) <<
+    //                         " (remainder " << remainder << ") : " <<
+    //                         "Expected: 0x" << std::hex << (seed & mask) << " " <<
+    //                         "Mask: 0x" << std::hex << mask << " " <<
+    //                         "Got: 0x" << std::hex << value << std::dec);
+    //      }
+    // }
 }
 
 void mem_buffer::pattern_check(const void *buffer, size_t length)
