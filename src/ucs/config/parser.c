@@ -1454,9 +1454,7 @@ void ucs_config_parse_config_files()
     }
 
     /* Current working dir */
-    ucs_snprintf_safe (path, MAXPATHLEN, "%s/%s", getenv("PWD"),
-             UCX_CONFIG_FILE_NAME);
-    ucs_config_parse_config_file(path, 1);
+    ucs_config_parse_config_file(UCX_CONFIG_FILE_NAME, 1);
 }
 
 ucs_status_t ucs_config_parser_fill_opts(void *opts, ucs_config_field_t *fields,
