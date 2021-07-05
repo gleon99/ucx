@@ -106,6 +106,7 @@ noinst_HEADERS = \
 	stats/stats.h \
 	sys/checker.h \
 	sys/compiler.h \
+	sys/lib_util.h \
 	sys/module.h \
 	sys/sys.h \
 	sys/iovec.h \
@@ -168,6 +169,7 @@ libucs_la_SOURCES = \
 	sys/string.c \
 	sys/sys.c \
 	sys/iovec.c \
+	sys/lib_util.c \
 	sys/sock.c \
 	sys/topo.c \
 	sys/stubs.c \
