@@ -12,7 +12,7 @@ lib_LTLIBRARIES     = libucs.la
 bin_PROGRAMS        =
 
 libucs_la_CPPFLAGS = $(BASE_CPPFLAGS) -DUCX_MODULE_DIR=\"$(moduledir)\" \
-                     -DUCX_CONF_DIR=\"$(ucx_conf_dir)\"
+                     -DUCX_CONFIG_DIR=\"$(ucx_config_dir)\"
 libucs_la_CFLAGS   = $(BASE_CFLAGS)
 libucs_la_LDFLAGS  = -ldl $(NUMA_LIBS) -version-info $(SOVERSION)
 libucs_ladir       = $(includedir)/ucs
