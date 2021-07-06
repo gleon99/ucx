@@ -7,7 +7,6 @@
 #ifndef LIB_H
 #define LIB_H
 
-
 #ifdef HAVE_CONFIG_H
 #  include "config.h"
 #endif
@@ -17,6 +16,7 @@
 
 #include <stdint.h>
 #include <dlfcn.h>
+
 
 BEGIN_C_DECLS
 

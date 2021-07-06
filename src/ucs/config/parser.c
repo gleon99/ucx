@@ -1423,34 +1423,34 @@ static ucs_status_t ucs_config_parser_get_sub_prefix(const char *env_prefix,
 
 void ucs_config_parse_config_files()
 {
-    char path[MAXPATHLEN] = {0};
-    const char *tmp = NULL;
+    char file_path[MAXPATHLEN];
+    const char *dir_path = NULL;
 
     /* Global config dir */
     ucs_config_parse_config_file(UCX_GLOBAL_CONFIG_FILE, 1);
 
     /* Library dir */
-    tmp = ucs_sys_get_lib_path();
-    if (tmp != NULL) {
-        ucs_snprintf_safe (path, MAXPATHLEN, "%s/../etc/%s",
-                 tmp, UCX_CONFIG_FILE_NAME);
-        ucs_config_parse_config_file(path, 1);
+    dir_path = ucs_sys_get_lib_path();
+    if (dir_path != NULL) {
+        ucs_snprintf_safe(file_path, MAXPATHLEN, "%s/../etc/%s",
+                          dir_path, UCX_CONFIG_FILE_NAME);
+        ucs_config_parse_config_file(file_path, 1);
     }
 
     /* User home dir */
-    tmp = getenv("HOME");
-    if (tmp != NULL) {
-        ucs_snprintf_safe (path, MAXPATHLEN, "%s/%s", tmp,
-                 UCX_CONFIG_FILE_NAME);
-        ucs_config_parse_config_file(path, 1);
+    dir_path = getenv("HOME");
+    if (dir_path != NULL) {
+        ucs_snprintf_safe(file_path, MAXPATHLEN, "%s/%s", dir_path,
+                          UCX_CONFIG_FILE_NAME);
+        ucs_config_parse_config_file(file_path, 1);
     }
 
     /* Custom directory for UCX configuration */
-    tmp = getenv("UCX_CONFIG_DIR");
-    if (tmp != NULL) {
-        ucs_snprintf_safe (path, MAXPATHLEN, "%s/%s", tmp,
-                 UCX_CONFIG_FILE_NAME);
-        ucs_config_parse_config_file(path, 1);
+    dir_path = getenv("UCX_CONFIG_DIR");
+    if (dir_path != NULL) {
+        ucs_snprintf_safe(file_path, MAXPATHLEN, "%s/%s", dir_path,
+                          UCX_CONFIG_FILE_NAME);
+        ucs_config_parse_config_file(file_path, 1);
     }
 
     /* Current working dir */
