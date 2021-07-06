@@ -4,8 +4,8 @@
 * See file LICENSE for terms.
 */
 
-#ifndef LIB_UTIL_H
-#define LIB_UTIL_H
+#ifndef LIB_H
+#define LIB_H
 
 
 #ifdef HAVE_CONFIG_H
@@ -23,7 +23,6 @@ BEGIN_C_DECLS
 /**
  * @return Full info on current library.
  */
-const
 ucs_status_t ucs_sys_get_lib_info(Dl_info *dl_info);
 
 
@@ -40,4 +39,4 @@ unsigned long ucs_sys_get_lib_base_addr();
 
 END_C_DECLS
 
-#endif /* LIB_UTIL_H */
+#endif /* LIB_H */

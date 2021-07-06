@@ -18,7 +18,7 @@
 #include <ucs/profile/profile.h>
 #include <ucs/stats/stats.h>
 #include <ucs/async/async.h>
-#include <ucs/sys/lib_util.h>
+#include <ucs/sys/lib.h>
 #include <ucs/sys/sys.h>
 #include <ucs/sys/topo.h>
 #include <ucs/sys/math.h>

@@ -19,11 +19,11 @@
 #include <ucs/debug/debug_int.h>
 #include <ucs/time/time.h>
 #include <ucs/config/ini.h>
+#include <ucs/sys/lib.h>
 #include <ucs/type/init_once.h>
 #include <fnmatch.h>
 #include <ctype.h>
 #include <libgen.h>
-#include <ucs/sys/lib_util.h>
 
 
 /* width of titles in docstring */

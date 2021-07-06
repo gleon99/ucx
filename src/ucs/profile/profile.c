@@ -13,7 +13,7 @@
 #include <ucs/datastruct/list.h>
 #include <ucs/debug/debug_int.h>
 #include <ucs/debug/log.h>
-#include <ucs/sys/lib_util.h>
+#include <ucs/sys/lib.h>
 #include <ucs/sys/string.h>
 #include <ucs/sys/sys.h>
 #include <ucs/time/time.h>
