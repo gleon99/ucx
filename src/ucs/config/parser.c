@@ -1287,24 +1287,27 @@ static int ucs_config_parse_config_file_line(void *arg, const char *section,
     return 1;
 }
 
-void ucs_config_parse_config_file(const char *path, int override)
+void ucs_config_parse_config_file(const char *dir_path, const char *file_name,
+                                  int override)
 {
+    char file_path[MAXPATHLEN];
     int parse_result;
     FILE* file;
 
-    file = fopen(path, "r");
+    ucs_snprintf_safe(file_path, MAXPATHLEN, "%s/%s", dir_path, file_name);
+    file = fopen(file_path, "r");
     if (file == NULL) {
-        ucs_debug("failed to open config file %s: %m", path);
+        ucs_debug("failed to open config file %s: %m", file_path);
         return;
     }
 
     parse_result = ini_parse_file(file, ucs_config_parse_config_file_line,
                                   &override);
     if (parse_result != 0) {
-        ucs_warn("failed to parse config file %s: %d", path, parse_result);
+        ucs_warn("failed to parse config file %s: %d", file_path, parse_result);
     }
 
-    ucs_debug("parsed config file %s", path);
+    ucs_debug("parsed config file %s", file_path);
     fclose(file);
 }
 
@@ -1423,40 +1426,31 @@ static ucs_status_t ucs_config_parser_get_sub_prefix(const char *env_prefix,
 
 void ucs_config_parse_config_files()
 {
-    char file_path[MAXPATHLEN];
     const char *dir_path;
 
     /* System-wide configuration file */
-    ucs_snprintf_safe(file_path, MAXPATHLEN, "%s/%s", UCX_CONFIG_DIR,
-                      UCX_CONFIG_FILE_NAME);
-    ucs_config_parse_config_file(file_path, 1);
+    ucs_config_parse_config_file(UCX_CONFIG_DIR, UCX_CONFIG_FILE_NAME, 1);
 
     /* Library dir */
     dir_path = ucs_sys_get_lib_path();
     if (dir_path != NULL) {
-        ucs_snprintf_safe(file_path, MAXPATHLEN, "%s/../etc/%s", dir_path,
-                          UCX_CONFIG_FILE_NAME);
-        ucs_config_parse_config_file(file_path, 1);
+        ucs_config_parse_config_file(dir_path, "../etc/" UCX_CONFIG_FILE_NAME, 1);
     }
 
     /* User home dir */
     dir_path = getenv("HOME");
     if (dir_path != NULL) {
-        ucs_snprintf_safe(file_path, MAXPATHLEN, "%s/%s", dir_path,
-                          UCX_CONFIG_FILE_NAME);
-        ucs_config_parse_config_file(file_path, 1);
+        ucs_config_parse_config_file(dir_path, UCX_CONFIG_FILE_NAME, 1);
     }
 
     /* Custom directory for UCX configuration */
     dir_path = getenv("UCX_CONFIG_DIR");
     if (dir_path != NULL) {
-        ucs_snprintf_safe(file_path, MAXPATHLEN, "%s/%s", dir_path,
-                          UCX_CONFIG_FILE_NAME);
-        ucs_config_parse_config_file(file_path, 1);
+        ucs_config_parse_config_file(dir_path, UCX_CONFIG_FILE_NAME, 1);
     }
 
     /* Current working dir */
-    ucs_config_parse_config_file(UCX_CONFIG_FILE_NAME, 1);
+    ucs_config_parse_config_file(".", UCX_CONFIG_FILE_NAME, 1);
 }
 
 ucs_status_t ucs_config_parser_fill_opts(void *opts, ucs_config_field_t *fields,

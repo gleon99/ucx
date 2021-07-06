@@ -377,10 +377,12 @@ ucs_config_parser_set_default_values(void *opts, ucs_config_field_t *fields);
 /**
  * Parse INI configuration file with UCX options.
  * 
- * @param path     Parse file at this path.
- * @param override Whether to override, if another file was previously parsed
+ * @param dir_path  Parse file at this location.
+ * @param file_name Parse this file.
+ * @param override  Whether to override, if another file was previously parsed
  */
-void ucs_config_parse_config_file(const char *path, int override);
+void ucs_config_parse_config_file(const char *dir_path, const char *file_name,
+                                  int override);
 
 
 /**
