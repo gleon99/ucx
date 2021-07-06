@@ -692,6 +692,7 @@ UCS_TEST_F(test_config, test_config_file) {
 UCS_TEST_F(test_config, test_config_file_parse_files) {
     /* coverity[tainted_string_argument] */
     ucs::scoped_setenv ucx_config_dir("UCX_CONFIG_DIR", TEST_CONFIG_DIR);
+    
     car_opts_t opts;
     ucs_status_t status;
 

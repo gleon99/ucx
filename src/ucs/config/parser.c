@@ -1424,10 +1424,12 @@ static ucs_status_t ucs_config_parser_get_sub_prefix(const char *env_prefix,
 void ucs_config_parse_config_files()
 {
     char file_path[MAXPATHLEN];
-    const char *dir_path = NULL;
+    const char *dir_path;
 
-    /* Global config dir */
-    ucs_config_parse_config_file(UCX_GLOBAL_CONFIG_FILE, 1);
+    /* System-wide configuration file */
+    ucs_snprintf_safe(file_path, MAXPATHLEN, "%s/%s", UCX_CONFIG_DIR,
+                      UCX_CONFIG_FILE_NAME);
+    ucs_config_parse_config_file(file_path, 1);
 
     /* Library dir */
     dir_path = ucs_sys_get_lib_path();

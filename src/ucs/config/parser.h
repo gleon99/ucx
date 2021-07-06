@@ -19,7 +19,6 @@
 #define UCS_DEFAULT_ENV_PREFIX "UCX_"
 #define UCS_CONFIG_ARRAY_MAX   128
 #define UCX_CONFIG_FILE_NAME   "ucx.conf"
-#define UCX_GLOBAL_CONFIG_FILE UCX_CONFIG_DIR "/" UCX_CONFIG_FILE_NAME
 
 BEGIN_C_DECLS
 
@@ -386,7 +385,7 @@ void ucs_config_parse_config_file(const char *path, int override);
 
 /**
  * Parse configuration files. This function searches for config in several
- * folders and parses them in order of precedence.
+ * locations and parses them in order of precedence.
  */
 void ucs_config_parse_config_files();
 
