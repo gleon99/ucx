@@ -1432,8 +1432,8 @@ void ucs_config_parse_config_files()
     /* Library dir */
     dir_path = ucs_sys_get_lib_path();
     if (dir_path != NULL) {
-        ucs_snprintf_safe(file_path, MAXPATHLEN, "%s/../etc/%s",
-                          dir_path, UCX_CONFIG_FILE_NAME);
+        ucs_snprintf_safe(file_path, MAXPATHLEN, "%s/../etc/%s", dir_path,
+                          UCX_CONFIG_FILE_NAME);
         ucs_config_parse_config_file(file_path, 1);
     }
 
