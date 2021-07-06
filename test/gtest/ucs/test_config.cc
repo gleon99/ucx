@@ -327,6 +327,7 @@ protected:
 
         static car_opts_t parse(const char *env_prefix,
                                 const char *table_prefix) {
+            /* coverity[tainted_string_argument] */
             ucs::scoped_setenv ucx_config_dir("UCX_CONFIG_DIR",
                                               TEST_CONFIG_DIR);
             car_opts_t tmp;
