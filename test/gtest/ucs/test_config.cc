@@ -711,6 +711,5 @@ UCS_TEST_F(test_config, test_config_file_parse_files) {
 
     /* Verify ucs_config_parse_config_files() overrides config */
     EXPECT_EQ(100, opts.price);
-
-    ASSERT_UCS_OK(status);
+    ucs_config_parser_release_opts(&opts, car_opts_table);
 }
