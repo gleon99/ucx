@@ -698,6 +698,11 @@ UCS_TEST_F(test_config, test_config_file_parse_files) {
     ucs_status_t status;
 
     ucs_config_parse_config_file(TEST_CONFIG_DIR, TEST_CONFIG_FILE, 1);
+    status = ucs_config_parser_fill_opts(&opts, car_opts_table,
+                                         UCS_DEFAULT_ENV_PREFIX, NULL, 0);
+    EXPECT_EQ(200, opts.price);
+    ucs_config_parser_release_opts(&opts, car_opts_table);
+    
     ucs_config_parse_config_files();
     status = ucs_config_parser_fill_opts(&opts, car_opts_table,
                                          UCS_DEFAULT_ENV_PREFIX, NULL, 0);
