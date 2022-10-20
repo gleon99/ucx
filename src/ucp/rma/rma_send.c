@@ -275,13 +275,13 @@ ucs_status_ptr_t ucp_put_nbx(ucp_ep_h ep, const void *buffer, size_t count,
         req->send.rma.rkey        = rkey;
         req->send.rma.remote_addr = remote_addr;
 
-        if (ucs_likely(attr_mask == 0)) {
-            contig_length = count;
-        } else if (attr_mask & UCP_OP_ATTR_FIELD_DATATYPE) {
+        if (ucs_unlikely(attr_mask & UCP_OP_ATTR_FIELD_DATATYPE)) {
             datatype = param->datatype;
             if (UCP_DT_IS_CONTIG(datatype)) {
                 contig_length = ucp_contig_dt_length(datatype, count);
             }
+        } else {
+            contig_length = count;
         }
 
         ret = ucp_proto_request_send_op(
