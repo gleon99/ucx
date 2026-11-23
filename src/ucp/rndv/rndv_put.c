@@ -574,7 +574,9 @@ static void ucp_proto_rndv_put_mtype_completion(uct_completion_t *uct_comp)
                                           send.state.uct_comp);
 
     ucp_trace_req(req, "rndv_put_mtype_completion");
-    ucs_mpool_put(req->send.rndv.mdesc);
+    if (req->flags & UCP_REQUEST_FLAG_PROTO_INITIALIZED) {
+        ucs_mpool_put(req->send.rndv.mdesc);
+    }
     ucp_proto_rndv_put_common_complete(req);
 }
 
@@ -584,7 +586,9 @@ static void ucp_proto_rndv_put_mtype_frag_completion(uct_completion_t *uct_comp)
                                           send.state.uct_comp);
 
     ucp_trace_req(req, "rndv_put_mtype_frag_completion");
-    ucs_mpool_put(req->send.rndv.mdesc);
+    if (req->flags & UCP_REQUEST_FLAG_PROTO_INITIALIZED) {
+        ucs_mpool_put(req->send.rndv.mdesc);
+    }
     ucp_proto_rndv_ppln_send_frag_complete(req, 1);
 }
 
@@ -669,6 +673,19 @@ ucp_proto_rndv_put_mtype_query(const ucp_proto_query_params_t *params,
                                     put_desc);
 }
 
+static void
+ucp_proto_rndv_put_mtype_abort(ucp_request_t *req, ucs_status_t status)
+{
+    const ucp_proto_rndv_put_priv_t *rpriv = req->send.proto_config->priv;
+
+    if (!(req->flags & UCP_REQUEST_FLAG_PROTO_INITIALIZED)) {
+        ucp_proto_completion_init(&req->send.state.uct_comp,
+                                  rpriv->put_comp_cb);
+    }
+
+    ucp_proto_rndv_stub_abort(req, status);
+}
+
 ucp_proto_t ucp_rndv_put_mtype_proto = {
     .name     = "rndv/put/mtype",
     .desc     = NULL,
@@ -683,6 +700,6 @@ ucp_proto_t ucp_rndv_put_mtype_proto = {
         [UCP_PROTO_RNDV_PUT_STAGE_ATP]        = ucp_proto_rndv_put_common_atp_progress,
         [UCP_PROTO_RNDV_PUT_STAGE_FENCED_ATP] = ucp_proto_rndv_put_common_fenced_atp_progress,
     },
-    .abort    = ucp_proto_rndv_stub_abort,
+    .abort    = ucp_proto_rndv_put_mtype_abort,
     .reset    = (ucp_request_reset_func_t)ucp_proto_reset_fatal_not_implemented
 };
